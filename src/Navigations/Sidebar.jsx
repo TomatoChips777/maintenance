@@ -6,7 +6,7 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
 
   const handleClick = (key) => {
     handleLinkClick(key);
-    // Define route paths based on key
+    // Dagdagan kung kailangan
     const routeMap = {
       Dashboard: '/',
       Inventory: '/inventory',

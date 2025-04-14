@@ -1,4 +1,5 @@
 import { Modal, Button } from 'react-bootstrap';
+import FormatDate from '../../extra/DateFormat';
 
 function ViewBorrowModal({ show, onHide, borrower }) {
   if (!borrower) return null;
@@ -14,8 +15,10 @@ function ViewBorrowModal({ show, onHide, borrower }) {
         <p><strong>Email:</strong> {borrower.email}</p>
         <p><strong>Department:</strong> {borrower.department}</p>
         <p><strong>Item:</strong> {borrower.item}</p>
+        <p><strong>Quantity:</strong> {borrower.item}</p>
         <p><strong>Description:</strong> {borrower.description}</p>
-        <p><strong>Date:</strong> {borrower.date}</p>
+        <p><strong>Borrow Date:</strong> {FormatDate(borrower.date)}</p>
+        <p><strong>Return Date:</strong> {FormatDate(borrower.date)}</p>
         <p><strong>Status:</strong> {borrower.status}</p>
       </Modal.Body>
       <Modal.Footer>

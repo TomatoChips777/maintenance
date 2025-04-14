@@ -4,6 +4,7 @@ import emailjs from 'emailjs-com';
 import EmailModal from './components/EmailModal';
 import AddBorrowerModal from './components/AddBorrowerModal';
 import ViewBorrowModal from './components/ViewBorrowModal';
+import FormatDate from '../extra/DateFormat';
 
 function BorrowingScreen() {
   const dummyData = [
@@ -128,7 +129,7 @@ function BorrowingScreen() {
   };
 
   return (
-    <Container className="" fluid>
+    <Container className="p-0 y-0" fluid>
       <Card className='p-1'>
         <h1 className="mb-4 text-center">Borrowing Records</h1>
         {/* Filters */}
@@ -164,7 +165,7 @@ function BorrowingScreen() {
         <Table striped bordered hover responsive className='mb-0'>
           <thead className='table-dark'>
             <tr>
-              <th>ID</th>
+              <th>#ID</th>
               <th>Borrower</th>
               <th>Email</th>
               <th>Department</th>
@@ -173,7 +174,7 @@ function BorrowingScreen() {
               <th>Description</th>
               <th>Borrow Date</th>
               <th>Returned Date</th>
-              <th>Status</th>
+              <th className='text-center'>Status</th>
               <th className="text-center">Actions</th>
             </tr>
           </thead>
@@ -186,20 +187,23 @@ function BorrowingScreen() {
                   <td>{entry.email}</td>
                   <td>{entry.department}</td>
                   <td>{entry.item}</td>
-                  <td>100</td>
-                  <td>{entry.description}</td>
-                  <td>{entry.date}</td>
-                  <td>{entry.date}</td>
+                  <td className='text-center'>100</td>
+                  <td>{entry.description.length > 10
+                    ? entry.description.substring(0, 10) + "..."
+                    : entry.description}
+                  </td>
+                  <td>{FormatDate(entry.date)}</td>
+                  <td>{FormatDate(entry.date)}</td>
                   <td>{entry.status}</td>
                   <td className="text-center">
-                    <Button variant="info" size="sm" className="me-2" onClick={() => openViewModal(entry)}>
+                    <Button variant="info" size="sm" className="me-2 mb-1" onClick={() => openViewModal(entry)}>
                       <i className="bi bi-eye"></i>
                     </Button>
 
-                    <Button variant="danger" size="sm" className="me-2">
+                    <Button variant="danger" size="sm" className="me-2 mb-1">
                       <i className="bi bi-trash"></i>
                     </Button>
-                    <Button variant="success" size="sm" onClick={() => openEmailModal(entry)}>
+                    <Button variant="success" size="sm " onClick={() => openEmailModal(entry)}>
                       <i className="bi bi-envelope-fill"></i>
                     </Button>
 

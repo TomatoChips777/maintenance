@@ -29,7 +29,7 @@ function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange }
             <Form.Control name="description" value={newBorrow.description} onChange={handleAddChange} />
           </Form.Group>
           <Form.Group className="mb-2">
-            <Form.Label>Date</Form.Label>
+            <Form.Label>Return Date</Form.Label>
             <Form.Control type="date" name="date" value={newBorrow.date} onChange={handleAddChange} required />
           </Form.Group>
           <Form.Group className="mb-2">
