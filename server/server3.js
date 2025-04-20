@@ -9,6 +9,7 @@ const { Server } = require('socket.io');
 const reportsRoutes = require('./routes/reports');
 const usersRoutes = require('./routes/users');
 const analytics = require('./routes/analytics');
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {

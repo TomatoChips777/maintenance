@@ -14,6 +14,9 @@ import { useAuth } from '../AuthContext';
 import Inventory from './Inventory/Inventory';
 import Dashboard from './Dashboard/Dashboard';
 import RequestPage from './RequestPage';
+import Notifications from './Notifications/Notifications';
+import Users from './User Management/Users';
+import ChatWidget from './Chatbot/ChatWidget';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -43,11 +46,14 @@ function App() {
           <div className="main-content">
             <TopNavbar toggleSidebar={toggleSidebar} />
             <div className="content-scroll p-3">
+              <ChatWidget/>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
+                <Route path='/users' element={<Users/>}/>
                 <Route path="/inventory" element={<Inventory />} />
                 <Route path="/borrowing" element={<BorrowingScreen />} />
                 <Route path="/events" element={<EventManager />} />
+                <Route path="/notifications" element={<Notifications/>}/>
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </div>

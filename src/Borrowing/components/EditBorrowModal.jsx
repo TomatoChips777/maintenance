@@ -1,5 +1,6 @@
-import { Modal, Form, Button, Card } from 'react-bootstrap';
-import { useState } from 'react';
+import { Modal, Form, Button, Card, Row, Col } from 'react-bootstrap';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../AuthContext';
 
 const departments = [
   'SDI', 'MLS', 'GenEd', 'Nursing', 'Rad Teck Pharmacy', 'Respiratory',
@@ -8,27 +9,44 @@ const departments = [
   'Pastoral Services', 'Clinic', 'Alumni Office'
 ];
 
-const commonItems = [
-  'EUS Laptop1 w/charger',
-  'EUS Laptop2 w/charger',
-  'EUS Laptop3 w/charger',
-  'EUS Laptop4 w/charger',
-  'EUS Laptop5 w/charger',
-  'EUS Laptop6 w/charger',
-];
-
-function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange }) {
-  const [selectedCommonItems, setSelectedCommonItems] = useState([]);
+function EditBorrowModal({ show, onHide, onSave, borrower }) {
+  const {user} = useAuth();
   const [customItems, setCustomItems] = useState([{ name: '', quantity: '1' }]);
-
-  const handleCommonItemCheck = (e) => {
-    const value = e.target.value;
-    setSelectedCommonItems((prev) =>
-      e.target.checked
-        ? [...prev, value]
-        : prev.filter((item) => item !== value)
-    );
+  const [editedBorrower, setEditedBorrower] = useState(null);
+  const formatDate = (date) => {
+    if (!date) return ''; 
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0'); 
+    const day = d.getDate().toString().padStart(2, '0'); 
+    return `${year}-${month}-${day}`; 
   };
+  useEffect(() => {
+    if (borrower) {
+      const originalReturnedDate = borrower.returned_date;
+      const formattedReturnedDate = formatDate(originalReturnedDate);
+  
+      setEditedBorrower({
+        ...borrower,
+        returned_date: formattedReturnedDate, // Set the formatted date here
+      });
+  
+      const parsedCustomItems = borrower.item_name
+        ? borrower.item_name.split(', ').map(item => {
+            const [name, quantity] = item.split(' (x');
+            return { name: name.trim(), quantity: quantity ? quantity.replace(')', '') : '1' };
+          })
+        : [{ name: '', quantity: '1' }];
+  
+      setCustomItems(parsedCustomItems);
+    } else {
+      setEditedBorrower(null);
+    }
+  }, [borrower]);
+  
+  if (!editedBorrower) {
+    return null;
+  }
 
   const handleCustomItemChange = (idx, field, value) => {
     const updated = [...customItems];
@@ -46,85 +64,112 @@ function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange }
     setCustomItems(updated);
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditedBorrower({
+      ...editedBorrower,
+      [name]: value
+    });
+  };
 
+  // const internalHandleSubmit = (e) => {
+  //   e.preventDefault();
+
+  //   const allItems = customItems.map(item => {
+  //     if (item.name.trim()) {
+  //       return item.quantity ? `${item.name} (x${item.quantity})` : item.name;
+  //     }
+  //     return null;
+  //   }).filter(item => item); // Remove any null entries
+
+  //   const finalForm = {
+  //     ...editedBorrower,
+  //     assist_by: user.name,
+  //     item_name: allItems.join(', '),
+  //     customItems: customItems.map(item => `${item.name} (x${item.quantity})`)
+  //   };
+
+  //   onSave(finalForm);
+  //   onHide();
+  // };
 
   const internalHandleSubmit = (e) => {
     e.preventDefault();
-
-    const allItems = [...selectedCommonItems];
-
-    customItems.forEach(item => {
+  
+    const allItems = customItems.map(item => {
       if (item.name.trim()) {
-        const itemStr = item.quantity ? `${item.name} (x${item.quantity})` : item.name;
-        allItems.push(itemStr);
+        return item.quantity ? `${item.name} (x${item.quantity})` : item.name;
       }
-    });
-
-    const dateOnly = new Date(newBorrow.returned_date);
-    dateOnly.setHours(17, 0, 0, 0); 
-
-    const phTime = new Date(
-      dateOnly.getTime() - (dateOnly.getTimezoneOffset() * 60000)
-    ).toISOString().slice(0, 19).replace('T', ' ');
-
-
-
+      return null;
+    }).filter(item => item); // Remove any null entries
+  
+    // Set return date to 5 PM PH time
+    const returnDate = new Date(editedBorrower.returned_date);
+    returnDate.setHours(17, 0, 0, 0); // 5:00 PM local time
+    const phTime = new Date(returnDate.getTime() - (returnDate.getTimezoneOffset() * 60000))
+      .toISOString()
+      .slice(0, 19)
+      .replace('T', ' ');
+  
     const finalForm = {
-      ...newBorrow,
-      returned_date: phTime, // store with time
-      item: allItems.join(', ')
+      ...editedBorrower,
+      assist_by: user.name,
+      returned_date: phTime,
+      item_name: allItems.join(', '),
+      customItems: customItems.map(item => `${item.name} (x${item.quantity})`)
     };
 
-    // const finalForm = {
-    //   ...newBorrow,
-    //   item: allItems.join(', ') 
-    // };
-
-    onSubmit(finalForm);
-
-
-    setSelectedCommonItems([]);
-    setCustomItems([{ name: '', quantity: '' }]);
+    onSave(finalForm);
+    onHide();
   };
-
+  
   return (
     <Modal show={show} onHide={onHide} centered size="xl">
       <Form onSubmit={internalHandleSubmit}>
         <Modal.Header closeButton>
-          <Modal.Title>Add New Borrowing Record</Modal.Title>
+          <Modal.Title>Edit Borrowing Record</Modal.Title>
         </Modal.Header>
 
         <Modal.Body className='p-0'>
           <Card>
             <Card.Body>
+              <Row className=''>
+              <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Borrower Name</Form.Label>
                 <Form.Control
                   type="text"
                   name="borrower_name"
-                  value={newBorrow.borrower_name}
-                  onChange={handleAddChange}
+                  value={editedBorrower.borrower_name}
+                  onChange={handleChange}
                   required
                 />
               </Form.Group>
+              </Col>
 
+              <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Email</Form.Label>
                 <Form.Control
                   type="email"
                   name="email"
-                  value={newBorrow.email}
-                  onChange={handleAddChange}
+                  value={editedBorrower.email}
+                  onChange={handleChange}
                   required
                 />
               </Form.Group>
+              </Col>
+              </Row>
+              
 
+              <Row className=''>
+              <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Label>Department</Form.Label>
                 <Form.Select
                   name="department"
-                  value={newBorrow.department}
-                  onChange={handleAddChange}
+                  value={editedBorrower.department}
+                  onChange={handleChange}
                   required
                 >
                   <option value="">Select department</option>
@@ -133,24 +178,22 @@ function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange }
                   ))}
                 </Form.Select>
               </Form.Group>
+              </Col>
 
-              {/* Select Common Items */}
+              <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Select Common Items</Form.Label>
-                <div className="d-flex flex-wrap gap-2">
-                  {commonItems.map((item, idx) => (
-                    <Form.Check
-                      key={idx}
-                      type="checkbox"
-                      label={item}
-                      value={item}
-                      checked={selectedCommonItems.includes(item)}
-                      onChange={handleCommonItemCheck}
-                    />
-                  ))}
-                </div>
+                <Form.Label>Return Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  name="returned_date"
+                  // value={editedBorrower.returned_date}
+                  value={editedBorrower.returned_date || ''} 
+                  onChange={handleChange}
+                  required
+                />
               </Form.Group>
-
+              </Col>
+              </Row>
               {/* Add Custom Items */}
               <Form.Group className="mb-3">
                 <Form.Label>Add Custom Item(s)</Form.Label>
@@ -191,29 +234,20 @@ function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange }
                 <Form.Control
                   as="textarea"
                   name="description"
-                  value={newBorrow.description}
-                  onChange={handleAddChange}
+                  value={editedBorrower.description}
+                  onChange={handleChange}
                   rows={2}
                 />
               </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Return Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="returned_date"
-                  value={newBorrow.returned_date}
-                  onChange={handleAddChange}
-                  required
-                />
-              </Form.Group>
+              
 
               <Form.Group className="mb-3">
                 <Form.Label>Status</Form.Label>
                 <Form.Select
                   name="status"
-                  value={newBorrow.status}
-                  onChange={handleAddChange}
+                  value={editedBorrower.status}
+                  onChange={handleChange}
                   required
                 >
                   <option value="Pending">Pending</option>
@@ -227,11 +261,11 @@ function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange }
 
         <Modal.Footer>
           <Button variant="secondary" onClick={onHide}>Cancel</Button>
-          <Button variant="primary" type="submit">Add</Button>
+          <Button variant="primary" type="submit">Save Changes</Button>
         </Modal.Footer>
       </Form>
     </Modal>
   );
 }
 
-export default AddBorrowerModal;
+export default EditBorrowModal;

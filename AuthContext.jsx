@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
-
+import { io } from 'socket.io-client';
 const AuthContext = createContext(null);
 const VITE_API_URL = import.meta.env.VITE_API_URL
 
@@ -11,33 +11,42 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
 
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) {
-          const parsedUser = JSON.parse(savedUser);
-          setUser(parsedUser);
-          setRole(parsedUser.role);
-          setIsAuthenticated(true);
-  
-          // Verify user with the backend
-          const fetchedUser = await fetchUser(parsedUser);
-          if (fetchedUser) {
-            setUser(fetchedUser);
-            setRole(fetchedUser.role);
-          } else {
-            console.warn("User verification failed, but keeping local state.");
-          }
+  const initializeAuth = async () => {
+    try {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        setRole(parsedUser.role);
+        setIsAuthenticated(true);
+
+        // Verify user with the backend
+        const fetchedUser = await fetchUser(parsedUser);
+        if (fetchedUser) {
+          setUser(fetchedUser);
+          setRole(fetchedUser.role);
+        } else {
+          console.warn("User verification failed, but keeping local state.");
         }
-      } catch (error) {
-        console.error("Failed to initialize auth:", error);
-      } finally {
-        setIsLoading(false);
       }
-    };
-  
+    } catch (error) {
+      console.error("Failed to initialize auth:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
     initializeAuth();
+
+    const socket = io(`${import.meta.env.VITE_API_URL}`);
+    socket.on('updateUser', () => {
+      initializeAuth();
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+
   }, []);
 
   const signIn = async (userInfo) => {
@@ -57,7 +66,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setRole(null);
       setIsAuthenticated(false);
-      localStorage.removeItem('user'); // Remove the user info from localStorage
+      localStorage.removeItem('user');
       localStorage.removeItem("activeLink");
     } catch (error) {
       console.error('Error signing out:', error);

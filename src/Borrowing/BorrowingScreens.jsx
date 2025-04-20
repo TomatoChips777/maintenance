@@ -1,32 +1,27 @@
-import { useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Container, Table, Form, Button, Row, Col, Card } from 'react-bootstrap';
 import emailjs from 'emailjs-com';
 import EmailModal from './components/EmailModal';
 import AddBorrowerModal from './components/AddBorrowerModal';
 import ViewBorrowModal from './components/ViewBorrowModal';
 import FormatDate from '../extra/DateFormat';
+import generatePDF from '../PDF Generator/PDFGenerator';
+import TextTruncate from '../extra/TextTruncate';
+import EditBorrowModal from './components/EditBorrowModal';
+import axios from 'axios';
+import { useAuth } from '../../AuthContext';
+import { io } from 'socket.io-client';
+import PaginationControls from '../extra/Paginations';
 
 function BorrowingScreen() {
-  const dummyData = [
-    { id: 1, borrower: 'John Doe', email: 'goldengrape777@gmail.com', department: 'IT', item: 'Projector', description: 'For conference', date: '2025-04-10', status: 'Pending' },
-    { id: 2, borrower: 'Jane Smith', email: 'jane@example.com', department: 'Marketing', item: 'Laptop', description: 'Client presentation', date: '2025-04-08', status: 'Approved' },
-    { id: 3, borrower: 'Sam Wilson', email: 'sam@example.com', department: 'AV', item: 'HDMI Cable', description: 'Connect projector', date: '2025-04-09', status: 'Returned' },
-    { id: 4, borrower: 'Alice Brown', email: 'alice@example.com', department: 'Admin', item: 'Whiteboard', description: 'Meeting notes', date: '2025-04-11', status: 'Pending' },
-    { id: 5, borrower: 'Bob Lee', email: 'bob@example.com', department: 'Graphics', item: 'Marker Set', description: 'Design sketches', date: '2025-04-12', status: 'Approved' },
-    { id: 6, borrower: 'Sarah Kim', email: 'sarah@example.com', department: 'Research', item: 'Tablet', description: 'Data input', date: '2025-04-13', status: 'Returned' },
-    { id: 7, borrower: 'Tom Cruz', email: 'tom@example.com', department: 'IT', item: 'Monitor', description: 'Workstation setup', date: '2025-04-14', status: 'Pending' },
-    { id: 8, borrower: 'Luna Park', email: 'luna@example.com', department: 'Support', item: 'Mouse', description: 'Device replacement', date: '2025-04-14', status: 'Returned' },
-    { id: 9, borrower: 'Tom Cruz', email: 'tom@example.com', department: 'IT', item: 'Monitor', description: 'Backup monitor', date: '2025-04-14', status: 'Pending' },
-    { id: 10, borrower: 'Luna Park', email: 'luna@example.com', department: 'Support', item: 'Mouse', description: 'Backup device', date: '2025-04-14', status: 'Returned' },
-    { id: 11, borrower: 'Luna Park', email: 'luna@example.com', department: 'Support', item: 'Mouse', description: 'Spare mouse', date: '2025-04-14', status: 'Returned' },
-    { id: 12, borrower: 'Tom Cruz', email: 'tom@example.com', department: 'IT', item: 'Monitor', description: 'Testing hardware', date: '2025-04-14', status: 'Pending' },
-    { id: 13, borrower: 'Luna Park', email: 'luna@example.com', department: 'Support', item: 'Mouse', description: 'For testing', date: '2025-04-14', status: 'Returned' },
-  ];
-
+  const { user } = useAuth();
+  const [borrowData, setBorrowData] = useState([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const [overdueFilter, setOverdueFilter] = useState(false);
 
   const [selectedBorrower, setSelectedBorrower] = useState(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -34,49 +29,105 @@ function BorrowingScreen() {
   const [message, setMessage] = useState('');
 
   const [showViewModal, setShowViewModal] = useState(false);
-
+  const [loading, setLoading] = useState(true);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newBorrow, setNewBorrow] = useState({
-    borrower: '',
+    borrower_name: '',
     email: '',
     department: '',
     item: '',
     description: '',
-    date: '',
+    borrow_date: '',
+    returned_date: '',
+    assist_by: '',
     status: 'Pending'
   });
 
 
-  const filteredData = dummyData.filter(entry => {
-    const matchesSearch =
-      entry.borrower.toLowerCase().includes(search.toLowerCase()) ||
-      entry.item.toLowerCase().includes(search.toLowerCase()) ||
-      entry.email.toLowerCase().includes(search.toLowerCase()) ||
-      entry.department.toLowerCase().includes(search.toLowerCase()) ||
-      entry.description.toLowerCase().includes(search.toLowerCase());
 
-    const matchesStatus = statusFilter === 'All' || entry.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_GET_BORROW_ITEMS}`);
+      setBorrowData(response.data);
+    } catch (error) {
 
-  const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+    } finally {
+      setLoading(false);
+    }
+  }
+  useEffect(() => {
+
+    fetchData();
+
+    const socket = io(`${import.meta.env.VITE_API_URL}`);
+    socket.on('updateBorrowing', () => {
+      fetchData();
+    });
+    return () => {
+      socket.disconnect();
+    };
+
+  }, []);
+
+  const isOverdue = (returnedDate, status) => {
+    if (!returnedDate || status === 'Returned') return false;
+
+    const now = new Date();
+    const due = new Date(returnedDate);
+
+    // We only care if it's PAST the due date
+    return now > due;
   };
 
-  const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  const filteredData = useMemo(() => {
+    return borrowData.filter(entry => {
+      const matchesSearch =
+        entry.borrower_name.toLowerCase().includes(search.toLowerCase()) ||
+        entry.item_name.toLowerCase().includes(search.toLowerCase()) ||
+        entry.email.toLowerCase().includes(search.toLowerCase()) ||
+        entry.department.toLowerCase().includes(search.toLowerCase()) ||
+        entry.description.toLowerCase().includes(search.toLowerCase());
+
+      const matchesStatus = statusFilter === 'All' || entry.status === statusFilter;
+
+      const matchesOverdue = !overdueFilter || isOverdue(entry.returned_date, entry.status);
+
+      return matchesSearch && matchesStatus && matchesOverdue;
+    });
+  }, [borrowData, search, statusFilter, overdueFilter]);
+
+
+  const currentData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredData.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredData, currentPage, itemsPerPage]);
+
+  // Inside Parent Component
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [currentBorrower, setCurrentBorrower] = useState(null);
+
+  const handleEdit = (borrower) => {
+    setCurrentBorrower(borrower);
+    setShowEditModal(true);
   };
 
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
+  const handleSave = async (updatedBorrower) => {
+    try {
+      const response = await axios.put(`${import.meta.env.VITE_UPDATE_ITEM}/${updatedBorrower.id}`, updatedBorrower);
 
+      if (response.data.success) {
+        setShowEditModal(false);
+        setCurrentPage(currentPage);
+      } else {
+        alert('Failed to update borrow record.');
+      }
+    } catch (error) {
+      console.error('Update error:', error);
+      alert('An error occurred while updating the record.');
+    }
+  };
   const openEmailModal = (entry) => {
     setSelectedBorrower(entry);
     setShowEmailModal(true);
@@ -93,7 +144,7 @@ function BorrowingScreen() {
   const sendEmail = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/send-email', {
+      const response = await fetch(`${import.meta.env.VITE_SEND_EMAIL}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -120,13 +171,67 @@ function BorrowingScreen() {
     setNewBorrow((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-    const newId = dummyData.length + 1;
-    dummyData.push({ id: newId, ...newBorrow });
-    setShowAddModal(false);
-    setNewBorrow({ borrower: '', email: '', department: '', item: '', description: '', date: '', status: 'Pending' });
+  const handleAddSubmit = async (borrowData) => {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_CREATE_BORROW_ITEM}`, {
+        borrower_name: borrowData.borrower_name,
+        email: borrowData.email,
+        department: borrowData.department,
+        item_name: borrowData.item,
+        description: borrowData.description,
+        returned_date: borrowData.returned_date || null,
+        assist_by: user.name,
+      });
+
+      if (response.data.success) {
+        setCurrentPage(currentPage);
+        console.log('Borrow added:', response.data.message);
+        setNewBorrow({
+          borrower_name: '',
+          email: '',
+          department: '',
+          item: '',
+          description: '',
+          borrow_date: '',
+          returned_date: '',
+          assist_by: ''
+        });
+
+        setShowAddModal(false);
+      } else {
+        console.error('Failed to add:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error submitting borrow:', error);
+    }
   };
+
+  const handleStatusChange = async (e, entry) => {
+    const newStatus = e.target.value;
+
+
+    if (entry.status === 'Returned' && newStatus !== 'Returned') {
+      const confirmChange = window.confirm('This item has already been returned. Do you want to change its status?');
+      if (!confirmChange) {
+        return;
+      }
+    }
+    try {
+      const updatedBorrower = { ...entry, status: newStatus, assist_by: user.name };
+      const response = await axios.put(`${import.meta.env.VITE_UPDATE_BORROW_ITEM_STATUS}/${entry.id}`, updatedBorrower);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('An error occurred while updating the status.');
+    }
+  };
+
+  const handlePageSizeChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to page 1 when page size changes
+  };
+
+
+
 
   return (
     <Container className="p-0 y-0" fluid>
@@ -135,7 +240,7 @@ function BorrowingScreen() {
         {/* Filters */}
         <Row className="mb-3 p-3">
 
-          <Col md={6}>
+          <Col md={5}>
             <Form.Control
               type="text"
               placeholder="Search borrower, item, email, department..."
@@ -143,7 +248,7 @@ function BorrowingScreen() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </Col>
-          <Col md={3}>
+          <Col md={2}>
             <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="All">All Statuses</option>
               <option value="Pending">Pending</option>
@@ -151,93 +256,105 @@ function BorrowingScreen() {
               <option value="Returned">Returned</option>
             </Form.Select>
           </Col>
-
+          <Col md={2}>
+            <Form.Check
+              type="checkbox"
+              label="Overdue Only"
+              checked={overdueFilter}
+              onChange={(e) => setOverdueFilter(e.target.checked)}
+            />
+          </Col>
           <Col md={3} className="d-flex justify-content-end align-items-center">
-            <Button size="lg" variant='dark' onClick={() => setShowAddModal(true)}>
+            <Button size="" variant='dark' onClick={() => setShowAddModal(true)}>
               <i className="bi bi-plus-circle me-2"></i> Add New
             </Button>
 
+            <Button size="" variant='outline-danger' className='ms-2' onClick={() => generatePDF(borrowData)}>
+              <i className="bi bi-file-earmark-pdf me-2"></i> Download PDF
+            </Button>
           </Col>
-
         </Row>
-
-        {/* Table */}
-        <Table striped bordered hover responsive className='mb-0'>
-          <thead className='table-dark'>
-            <tr>
-              <th>#ID</th>
-              <th>Borrower</th>
-              <th>Email</th>
-              <th>Department</th>
-              <th>Item</th>
-              <th>Quantity</th>
-              <th>Description</th>
-              <th>Borrow Date</th>
-              <th>Returned Date</th>
-              <th className='text-center'>Status</th>
-              <th className="text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentData.length > 0 ? (
-              currentData.map(entry => (
-                <tr key={entry.id}>
-                  <td>{entry.id}</td>
-                  <td>{entry.borrower}</td>
-                  <td>{entry.email}</td>
-                  <td>{entry.department}</td>
-                  <td>{entry.item}</td>
-                  <td className='text-center'>100</td>
-                  <td>{entry.description.length > 10
-                    ? entry.description.substring(0, 10) + "..."
-                    : entry.description}
-                  </td>
-                  <td>{FormatDate(entry.date)}</td>
-                  <td>{FormatDate(entry.date)}</td>
-                  <td>{entry.status}</td>
-                  <td className="text-center">
-                    <Button variant="info" size="sm" className="me-2 mb-1" onClick={() => openViewModal(entry)}>
-                      <i className="bi bi-eye"></i>
-                    </Button>
-
-                    <Button variant="danger" size="sm" className="me-2 mb-1">
-                      <i className="bi bi-trash"></i>
-                    </Button>
-                    <Button variant="success" size="sm " onClick={() => openEmailModal(entry)}>
-                      <i className="bi bi-envelope-fill"></i>
-                    </Button>
-
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="9" className="text-center">No records found.</td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-        <Card.Footer>
-          {/* Pagination */}
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <Button variant="outline-dark" size="sm" onClick={handlePrev} disabled={currentPage === 1}>
-                &laquo; Prev
-              </Button>{' '}
-              <Button variant="outline-dark" size="sm" onClick={handleNext} disabled={currentPage === totalPages || totalPages === 0}>
-                Next &raquo;
-              </Button>
-            </div>
-
-            <div className="d-flex align-items-center">
-              <span className="me-2">Items per page:</span>
-              <Form.Select size="sm" style={{ width: '80px' }} value={itemsPerPage} onChange={handleItemsPerPageChange}>
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="30">30</option>
-              </Form.Select>
-            </div>
+        {loading ? (
+          <div className="text-center py-5">
+            <span className="spinner-border text-dark" role="status" />
           </div>
+        ) : (
+          <Table striped bordered hover responsive className='mb-0'>
+            <thead className='table-dark'>
+              <tr>
+                <th>#ID</th>
+                <th>Borrower</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Item</th>
+                <th>Description</th>
+                <th>Borrow Date</th>
+                <th>Returned Date</th>
+                <th>Assist By</th>
+                <th className='text-center'>Status</th>
+                <th className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentData.length > 0 ? (
+                currentData.map(entry => (
+                  <tr key={entry.id} className={isOverdue(entry.returned_date, entry.status) ? 'table-danger' : ''}>
+                    <td>{entry.id}</td>
+                    <td>{entry.borrower_name}</td>
+                    <td>{entry.email}</td>
+                    <td>{entry.department}</td>
+                    <td><TextTruncate text={entry.item_name} maxLength={10} /></td>
+                    <td><TextTruncate text={entry.description} maxLength={10} /></td>
+                    <td>{FormatDate(entry?.borrow_date)}</td>
+                    <td>{entry.returned_date ? FormatDate(entry.returned_date) : 'N/A'}</td>
+                    <td>{entry.assisted_by}</td>
+                    {/* <td>{entry.status}</td> */}
+                    <td className="text-center">
+                      <Form.Select
+                        value={entry.status}
+                        onChange={(e) => handleStatusChange(e, entry)}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Returned">Returned</option>
+                      </Form.Select>
+                    </td>
+
+                    <td className="text-center">
+                      <Button variant="info" size="sm" className="me-2 mb-1" onClick={() => openViewModal(entry)}>
+                        <i className="bi bi-eye"></i>
+                      </Button>
+
+                      <Button variant="warning" size="sm " className="me-2 mb-1" onClick={() => handleEdit(entry)}>
+                        <i className="bi bi-pencil"></i>
+                      </Button>
+
+                      <Button variant="danger" size="sm" className="me-2 mb-1">
+                        <i className="bi bi-trash"></i>
+                      </Button>
+
+                      <Button variant="success" size="sm " className="me-2 mb-1" onClick={() => openEmailModal(entry)}>
+                        <i className="bi bi-envelope-fill"></i>
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="9" className="text-center">No records found.</td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        )}
+        <Card.Footer>
+          <PaginationControls
+            filteredReports={filteredData}
+            pageSize={itemsPerPage}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            handlePageSizeChange={handlePageSizeChange}
+          />
         </Card.Footer>
       </Card>
 
@@ -265,8 +382,12 @@ function BorrowingScreen() {
         onHide={() => setShowViewModal(false)}
         borrower={selectedBorrower}
       />
-
-
+      <EditBorrowModal
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+        borrower={currentBorrower}
+        onSave={handleSave}
+      />
     </Container>
   );
 }

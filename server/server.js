@@ -4,31 +4,47 @@ const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
 const app = express();
+const nodemailer = require('nodemailer');
+const usersRoutes = require('./routes/users');
+const chatbot = require('./routes/chatbot');
+const borrow = require('./routes/borrow');
+const inventory = require('./routes/inventory');
+const events = require('./routes/events');
+const notifications = require('./routes/notifications');
+const dashboard = require('./routes/dashboard');
+const cors = require('cors');
 
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: "*",
         methods: ["GET", "POST", "PUT", "DELETE"]
     } 
 });
-const nodemailer = require('nodemailer');
-const usersRoutes = require('./routes/users');
-const cors = require('cors');
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/users', usersRoutes);
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
+app.use('/api/users', usersRoutes);
+app.use('/api/chatbot', chatbot);
+app.use('/api/borrow-items',borrow );
+app.use('/api/inventory', inventory);
+app.use('/api/events', events);
+app.use('/api/notifications', notifications);
+app.use('/api/dashboard', dashboard);
 app.post('/send-email', async (req, res) => {
   const { to, subject, message } = req.body;
 
   try {
     const transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
+        name: 'example.com',
         port: 465,
         secure: true,
         auth: {
@@ -54,12 +70,16 @@ app.post('/send-email', async (req, res) => {
   }
 });
 
+const { checkUpcomingEvents } = require('./utils/checkEvent');
+// setInterval(() => checkUpcomingEvents(io), 60 * 60 * 1000);
+setInterval(() => checkUpcomingEvents(io), 10 * 1000);
+
+
 const port = 5000;
 server.listen(port, () => {
     console.log(`Server is listening on http://localhost:${port}`);
 });
 
-// WebSocket connection event
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 

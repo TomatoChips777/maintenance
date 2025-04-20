@@ -12,6 +12,8 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
       Inventory: '/inventory',
       Barrowing: '/borrowing',
       Events: '/events',
+      Notifications: '/notifications',
+      Users: '/users',
     };
     navigate(routeMap[key]);
   };
@@ -26,9 +28,11 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
       <Nav className="flex-column">
         {[
           { key: 'Dashboard', icon: 'speedometer2' },
+          {key: 'Users', icon: 'people-fill'},
           { key: 'Inventory', icon: 'box-seam' },
           { key: 'Barrowing', icon: 'arrow-left-right' },
           { key: 'Events', icon: 'calendar' },
+          { key: 'Notifications', icon: 'bell' },
         ].map(({ key, icon }) => (
           <Nav.Link
             key={key}
