@@ -37,14 +37,9 @@ WHERE status != 'Returned' AND returned_date < CURDATE()
     const availableItemsResult = await db.queryAsync(availableItemsQuery);
     // Fetch recent borrowings
     const borrowQuery = `
-      SELECT item_name, borrower_name, borrow_date, returned_date,
-             CASE
-               WHEN returned_date IS NULL THEN 'Pending'
-               WHEN returned_date > borrow_date THEN 'Returned'
-               ELSE 'Unknown'
-             END AS status
+      SELECT item_name, borrower_name, borrow_date, returned_date,status
       FROM borrowed_items
-      ORDER BY borrow_date DESC
+      ORDER BY created_at DESC
     `;
     const borrowings = await db.queryAsync(borrowQuery);
 

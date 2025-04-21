@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Container, Table, Form, Button, Row, Col, Card, Spinner } from 'react-bootstrap';
+import { Container, Table, Form, Button, Row, Col, Card, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';
 
 import TextTruncate from '../extra/TextTruncate';
 import AddInventoryModal from './components/AddInventoryModal';
@@ -8,7 +8,7 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 import PaginationControls from '../extra/Paginations';
 
-function InventoryScreen() {
+function InventoryScreen({ handleAskButton }) {
   const [items, setItems] = useState([]);
 
   const [search, setSearch] = useState('');
@@ -187,7 +187,29 @@ function InventoryScreen() {
                 <tr key={item.id}>
                   <td>{item.id}</td>
                   <td>{item.serial_number}</td>
-                  <td><TextTruncate text={item.item_name} maxLength={10} /></td>
+                  {/* <td><TextTruncate text={item.item_name} maxLength={10} /></td> */}
+                  <td>
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={<Tooltip>Ask about this item</Tooltip>}
+                    >
+                      <span
+                        style={{ cursor: 'pointer' }}
+                        onClick={() =>
+                          handleAskButton(
+
+                            `What is the purpose or use of this item: "${item.item_name}"${item.serial_number
+                              ? ` with serial number ${item.serial_number}`
+                              : ''
+                            }, category: ${item.category}, status: ${item.status}, quantity: ${item.quantity}?`
+
+                          )
+                        }
+                      >
+                        <TextTruncate text={item.item_name} maxLength={10} />
+                      </span>
+                    </OverlayTrigger>
+                  </td>
                   <td>{item.category}</td>
                   <td>{item.quantity}</td>
                   <td className='text-center'>{item.status}</td>

@@ -19,6 +19,7 @@ import Users from './User Management/Users';
 import ChatWidget from './Chatbot/ChatWidget';
 
 function App() {
+  const [chatMessage, setChatMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeLink, setActiveLink] = useState(() => {
     return localStorage.getItem("activeLink") || "Dashboard";
@@ -31,6 +32,9 @@ function App() {
     localStorage.setItem("activeLink", link);
   };
 
+  const handleAskButton = (message) => {
+    setChatMessage(message); 
+  };
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) return <div>Loading...</div>;
 
@@ -46,14 +50,14 @@ function App() {
           <div className="main-content">
             <TopNavbar toggleSidebar={toggleSidebar} />
             <div className="content-scroll p-3">
-              <ChatWidget/>
+              <ChatWidget askMessage={chatMessage}/>
               <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path='/users' element={<Users/>}/>
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/borrowing" element={<BorrowingScreen />} />
-                <Route path="/events" element={<EventManager />} />
-                <Route path="/notifications" element={<Notifications/>}/>
+                <Route path="/" element={<Dashboard handleAskButton={handleAskButton}/>} />
+                <Route path='/users' element={<Users handleAskButton={handleAskButton}/>}/>
+                <Route path="/inventory" element={<Inventory handleAskButton={handleAskButton} />} />
+                <Route path="/borrowing" element={<BorrowingScreen handleAskButton={handleAskButton} />} />
+                <Route path="/events" element={<EventManager handleAskButton={handleAskButton} />} />
+                <Route path="/notifications" element={<Notifications  handleAskButton={handleAskButton}/>}/>
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </div>

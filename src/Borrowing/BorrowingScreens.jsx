@@ -128,6 +128,7 @@ function BorrowingScreen() {
       alert('An error occurred while updating the record.');
     }
   };
+  
   const openEmailModal = (entry) => {
     setSelectedBorrower(entry);
     setShowEmailModal(true);

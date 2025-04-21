@@ -80,7 +80,7 @@ const EditEventModal = ({ show, event, onClose, onUpdate }) => {
         };
 
         try {
-            const response = await axios.post('http://localhost:5000/api/events/edit-event', payload);
+            const response = await axios.post(`${import.meta.env.VITE_EDIT_EVENT}`, payload);
             if (response.data.success) {
                 onUpdate();
             } else {

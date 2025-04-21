@@ -54,7 +54,7 @@ const LoginScreen = () => {
       className="d-flex justify-content-center align-items-center"
       style={{
         minHeight: '100vh',
-        backgroundColor: '#f7f7f7', // Light background color for the page
+        backgroundColor: '#f7f7f7',
       }}
     >
       <Row className="w-100 justify-content-center">

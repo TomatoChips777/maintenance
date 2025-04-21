@@ -199,7 +199,7 @@ function EventManager() {
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2>Event Preparation's Calendar</h2>
             <Button variant="dark" onClick={() => setShowCreateModal(true)}>
-              <i className="bi bi-plus-lg"></i> + Create Event Preparation
+              <i className="bi bi-plus-lg"></i> Create Event Preparation
             </Button>
           </div>
            {/* Search bar centered and small */}

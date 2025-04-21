@@ -369,8 +369,6 @@ const Charts = ({ type, data }) => {
     );
   }
   
-  
-  
   return <p className="text-muted">Invalid chart type.</p>;
 };
 

@@ -7,10 +7,15 @@ import TextTruncate from '../extra/TextTruncate';
 import CreateEventModal from '../Events/components/CreateEventModal';
 import { io } from 'socket.io-client';
 import Charts from './components/Charts';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
-const Dashboard = () => {
-  const {user} = useAuth();
+import {
+  formatAssistFrequency,
+  formatBorrowersRanking, formatBorrowingFrequencyText,
+  formatEvents, formatQuickStats
+} from './components/Formatted';
+import { ChatSquareQuoteFill } from 'react-bootstrap-icons';
+const Dashboard = ({ handleAskButton }) => {
+  const { user } = useAuth();
   const [inventoryData, setInventoryData] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [ongoingEvents, setOngoingEvents] = useState([]);
@@ -39,7 +44,7 @@ const Dashboard = () => {
 
 
   const fetchData = async () => {
-    axios.get(`http://localhost:5000/api/dashboard/${user.id}`)
+    axios.get(`${import.meta.env.VITE_DASHBOARD_DATA}/${user.id}`)
       .then(res => {
         setInventoryData(res.data.inventory || []);
         setUpcomingEvents(res.data.upcomingEvents || []);
@@ -203,7 +208,9 @@ const Dashboard = () => {
       </div>
 
       <Card className="mb-4">
-        <Card.Header className="fw-bold text-primary">Quick Stats</Card.Header>
+        <Card.Header className="fw-bold text-primary d-flex justify-content-between">
+          Quick Stats
+          <Button variant='primary' size='sm' className='rounded-pill' onClick={() => handleAskButton(`Analyze this data: ${formatQuickStats(quickStats)}`)}><ChatSquareQuoteFill size={14} /></Button></Card.Header>
         <Card.Body>
           <Row>
             {[
@@ -224,52 +231,33 @@ const Dashboard = () => {
           </Row>
         </Card.Body>
       </Card>
-
-      {/* <Card className="mb-4">
-        <Card.Header className="fw-bold text-primary">Quick Stats</Card.Header>
-        <Card.Body>
-          <Row>
-            {[
-              { label: "Borrowed Today", value: 12, variant: "primary" },
-              { label: "Overdue Returns", value: 5, variant: "danger" },
-              { label: "Active Borrowers", value: 28, variant: "success" },
-              { label: "Available Items", value: inventoryData.reduce((acc, item) => acc + item.available, 0), variant: "info" },
-            ].map(({ label, value, variant }, index) => (
-              <Col key={index} sm={6} md={3} className="mb-3">
-                <Card bg={variant} text="white" className="h-100 shadow-sm">
-                  <Card.Body className="text-center">
-                    <Card.Title className="fs-2">{value}</Card.Title>
-                    <Card.Text>{label}</Card.Text>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </Card.Body>
-      </Card> */}
-
       {/* Summary and Inventory/Events */}
       <Row className="mb-4">
         <Col md={6}>
-          {/* <Card className="h-100 text-center">
-            <Card.Body className="d-flex justify-content-center align-items-center">
-              <div>
-                <h5 className="text-muted">Summary</h5>
-                <p className="text-muted">( , )Y( , )</p>
-              </div>
-            </Card.Body>
-          </Card> */}
           <Row className="mb-4">
             <Col>
               <Card className="mb-3">
-                <Card.Header className="fw-semibold text-primary">Borrowing Frequency</Card.Header>
+                <Card.Header className="fw-semibold text-primary d-flex justify-content-between">Borrowing Frequency
+                  <Button variant='primary' size='sm' className='rounded-pill'
+                    onClick={() => handleAskButton(`Explain this data: ${formatBorrowingFrequencyText(borrowings, 'day')}`)}><ChatSquareQuoteFill size={14} /></Button>
+                </Card.Header>
                 <Card.Body>
                   <Charts type="borrowingFrequency" data={borrowings} />
                 </Card.Body>
               </Card>
 
               <Card className="mb-3">
-                <Card.Header className="fw-semibold text-primary">Inventory Status</Card.Header>
+                <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+                  Inventory Status
+                  <Button
+                    variant='primary'
+                    size='sm'
+                    className='rounded-pill'
+                    onClick={() => handleAskButton(`Summarize the inventory condition counts: New (${conditionCounts.new}), Used (${conditionCounts.used}), Old (${conditionCounts.old}), Restored (${conditionCounts.restored})`)}
+                  >
+                    <ChatSquareQuoteFill size={14} />
+                  </Button>
+                </Card.Header>
                 <Card.Body>
                   <Charts type="inventoryStatus" data={inventoryData} />
                 </Card.Body>
@@ -279,15 +267,33 @@ const Dashboard = () => {
           <Row className="mb-4">
             <Col>
               <Card className="mb-3">
-                <Card.Header className="fw-semibold text-primary">Borrowers Frequency</Card.Header>
+                <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+                  Borrowers Frequency
+                  <Button
+                    variant='primary'
+                    size='sm'
+                    className='rounded-pill'
+                    onClick={() => handleAskButton(`Summarize top borrowers and their frequency: ${formatBorrowersRanking(borrowersData)}`)}
+                  >
+                    <ChatSquareQuoteFill size={14} />
+                  </Button>
+                </Card.Header>
                 <Card.Body>
                   <Charts type="borrowerRanking" data={borrowersData} />
                 </Card.Body>
               </Card>
-
-
               <Card className="mb-3">
-                <Card.Header className="fw-semibold text-primary">Assist Frequencys</Card.Header>
+                <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+                  Assist Frequencys
+                  <Button
+                    variant='primary'
+                    size='sm'
+                    className='rounded-pill'
+                    onClick={() => handleAskButton(`Assist frequency by personnel: ${formatAssistFrequency(assistFrequency)}`)}
+                  >
+                    <ChatSquareQuoteFill size={14} />
+                  </Button>
+                </Card.Header>
                 <Card.Body>
                   <Charts type="assistFrequency" data={assistFrequency} />
                 </Card.Body>
@@ -295,11 +301,20 @@ const Dashboard = () => {
             </Col>
           </Row>
         </Col>
-
         <Col md={6}>
           {/* Today's Events */}
           <Card className='mb-4'>
-            <Card.Header className="fw-semibold text-primary">Today's Events</Card.Header>
+            <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+              Today's Events
+              <Button
+                variant='primary'
+                size='sm'
+                className='rounded-pill'
+                onClick={() => handleAskButton(`Here are today's events: ${formatEvents(todayEvents)}`)}
+              >
+                <ChatSquareQuoteFill size={14} />
+              </Button>
+            </Card.Header>
             <Card.Body>
               {todayEvents.length === 0 ? (
                 <p>No events scheduled for today</p>
@@ -329,7 +344,17 @@ const Dashboard = () => {
           </Card>
           {/* Ongoing Events */}
           <Card className='mb-4'>
-            <Card.Header className="fw-semibold text-primary">Ongoing Events</Card.Header>
+            <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+              Ongoing Events
+              <Button
+                variant='primary'
+                size='sm'
+                className='rounded-pill'
+                onClick={() => handleAskButton(`Current ongoing events: ${formatEvents(sortedOngoing)}`)}
+              >
+                <ChatSquareQuoteFill size={14} />
+              </Button>
+            </Card.Header>
             <Card.Body>
               {sortedOngoing.length === 0 ? (
                 <p>No ongoing events</p>
@@ -360,7 +385,17 @@ const Dashboard = () => {
 
           {/* Upcoming Events */}
           <Card className='mb-4'>
-            <Card.Header className="fw-semibold text-primary">Upcoming Events</Card.Header>
+            <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+              Upcoming Events
+              <Button
+                variant='primary'
+                size='sm'
+                className='rounded-pill'
+                onClick={() => handleAskButton(`Here are upcoming events: ${formatEvents(sortedUpcoming)}`)}
+              >
+                <ChatSquareQuoteFill size={14} />
+              </Button>
+            </Card.Header>
             <Card.Body>
               {sortedUpcoming.length === 0 ? (
                 <p>No upcoming events</p>
@@ -390,7 +425,17 @@ const Dashboard = () => {
           </Card>
           {/* Inventory Table */}
           <Card>
-            <Card.Header className="fw-semibold text-primary">Inventory Overview</Card.Header>
+            <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+              Inventory Overview
+              <Button
+                variant='primary'
+                size='sm'
+                className='rounded-pill'
+                onClick={() => handleAskButton(`Inventory snapshot of ${currentInventoryItems.length} items: ${currentInventoryItems.map(i => `${i.item} (${i.status}/${i.total})`).join(', ')}`)}
+              >
+                <ChatSquareQuoteFill size={14} />
+              </Button>
+            </Card.Header>
             <Card.Body>
               <Table responsive bordered hover size="sm">
                 <thead className="table-light">
@@ -453,7 +498,30 @@ const Dashboard = () => {
 
       {/* Borrowing Table with Pagination */}
       <Card className="mb-5">
-        <Card.Header className="fw-semibold text-primary">Recent Borrowing Activity</Card.Header>
+        <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+          Recent Borrowing Activity
+          <Button
+            variant='primary'
+            size='sm'
+            className='rounded-pill'
+            onClick={() => {
+              const summaryText = currentBorrowings.length === 0
+                ? "No recent borrowing activity."
+                : `Recent borrowings (${currentBorrowings.length} records): ` +
+                currentBorrowings
+                  .map(
+                    (i) =>
+                      `${i.item_name} borrowed by ${i.borrower_name} on ${new Date(
+                        i.borrow_date
+                      ).toLocaleDateString()} (${i.status})`
+                  )
+                  .join("; ");
+              handleAskButton(summaryText);
+            }}
+          >
+            <ChatSquareQuoteFill size={14} />
+          </Button>
+        </Card.Header>
         <Card.Body>
           <Table responsive bordered hover>
             <thead className="table-light">
@@ -473,9 +541,15 @@ const Dashboard = () => {
                   <td>{new Date(b.borrow_date).toLocaleDateString()}</td>
                   <td>{new Date(b.returned_date).toLocaleDateString()}</td>
                   <td>
-                    <span className={`badge text-white bg-${b.status === 'Returned' ? 'success' : b.status === 'Approved' ? 'primary' : 'warning'} text-dark`}>
-                      {b.status === 'Returned' ? 'Returned' : b.status === 'Approved' ? 'Approved' : 'Pending'}
+                    <span
+                      className={`badge bg-${b.status === 'Returned' ? 'success'
+                          : b.status === 'Approved' ? 'primary'
+                            : 'warning'
+                        } text-white`}
+                    >
+                      {b.status}
                     </span>
+
                   </td>
                 </tr>
               ))}
@@ -507,16 +581,6 @@ const Dashboard = () => {
           </div>
         </Card.Footer>
       </Card>
-
-      {/* <ChatWidget /> */}
-
-      {/* Action Buttons */}
-      {/* <div className="d-flex gap-3">
-        <Button variant="success">Request Borrow</Button>
-        <Button variant="primary">View Inventory</Button>
-        <Button variant="secondary">Manage Users</Button>
-      </div> */}
-
       <CreateEventModal
         show={showCreateModal}
         eventName={eventForm.eventName}

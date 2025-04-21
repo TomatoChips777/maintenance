@@ -160,6 +160,53 @@ const { exec } = require('child_process');
 const axios = require('axios');
 const { getCache, setCache } = require('../utils/cache');
 
+
+const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+const today = new Date().toLocaleDateString(undefined, dateOptions);
+
+const formatBorrowings = (borrowings) => {
+  return borrowings.map((b, index) => `Borrowing ${index + 1}:
+  - Borrowers Names: ${b.borrower_name}
+  - Item(s): ${b.item_name}
+  - Borrow Date: ${new Date(b.borrow_date).toLocaleDateString(undefined, dateOptions)}
+  - Status: ${b.status}`).join('\n\n');
+};
+const formatInventory= (inventory) => {
+  return inventory.map((item, index) => `Inventory Item ${index + 1}:
+  - Name: ${item.item}
+  - Available: ${item.available}
+  - Status: ${item.status}`).join('\n\n');
+};
+const formatOngoingEvents = (events) => {
+  return events.map((event, index) => {
+    const prepItems = event.preparations.map(p => `    - ${p.name} (x${p.quantity})`).join('\n');
+    return `Ongoing Event ${index + 1}:
+  - Title: ${event.title}
+  - Date: ${new Date(event.startDate).toLocaleDateString(undefined, dateOptions)} - ${new Date(event.endDate).toLocaleDateString(undefined, dateOptions)}
+  - Time: ${event.time}
+  - Preparations:\n${prepItems}`;
+  }).join('\n\n');
+};
+const formatTodayEvents = (events) => {
+    return events.map((event, index) => {
+      const prepItems = event.preparations.map(p => `    - ${p.name} (x${p.quantity})`).join('\n');
+      return `Today's Event ${index + 1}:
+    - Title: ${event.title}
+    - Date: ${new Date(event.startDate).toLocaleDateString(undefined, dateOptions)} - ${new Date(event.endDate).toLocaleDateString(undefined, dateOptions)}
+    - Time: ${event.time}
+    - Preparations:\n${prepItems}`;
+    }).join('\n\n');
+  };
+  const formatUpcomingEvents= (events) => {
+    return events.map((event, index) => {
+      const prepItems = event.preparations.map(p => `    - ${p.name} (x${p.quantity})`).join('\n');
+      return `Upcoming Event ${index + 1}:
+    - Title: ${event.title}
+    - Date: ${new Date(event.startDate).toLocaleDateString(undefined, dateOptions)} - ${new Date(event.endDate).toLocaleDateString(undefined, dateOptions)}
+    - Time: ${event.time}
+    - Preparations:\n${prepItems}`;
+    }).join('\n\n');
+  };
 // Fetch dashboard data with caching
 const fetchDashboardData = async (user_id) => {
     const cacheKey = 'dashboardData';
@@ -167,16 +214,15 @@ const fetchDashboardData = async (user_id) => {
     if (cachedData) return cachedData;
 
     try {
-        const response = await axios.get(`http://localhost:5000/api/dashboard/${user_id}`);
+        const response = await axios.get(`http://localhost:3000/api/dashboard/${user_id}`);
         const dashboardData = response.data;
-        setCache(cacheKey, dashboardData, 3600); // cache for 60 seconds
+        setCache(cacheKey, dashboardData, 3600);
         return dashboardData;
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
         return null;
     }
 };
-
 // Safely stringify objects for logging
 const safeStringify = (obj) => {
     const seen = new Set();
@@ -188,7 +234,6 @@ const safeStringify = (obj) => {
         return value;
     });
 };
-
 // Build the prompt
 const generatePrompt = (history, userMessage, dashboardData) => {
   // List of greetings to handle redundant greeting messages in the history
@@ -211,27 +256,12 @@ const generatePrompt = (history, userMessage, dashboardData) => {
         .map(msg => `${msg.sender === 'user' ? 'User' : 'Bot'}: ${msg.text}`)
         .join('\n')}\n`
     : '';
-
-  // Construct the assistant prompt with relevant system data and user query
   return `
-    You are an advanced assistant with comprehensive knowledge of the IT Support system. You are tasked with assisting the user by providing expert-level guidance 
-    and information. Your responses should be direct, based on the provided data and chat history, applying any relevant insights from the system's current state.
-
-    Context: 
-    - **Inventory**: ${JSON.stringify(dashboardData.inventory)}
-    - **Ongoing Events**: ${JSON.stringify(dashboardData.ongoingEvents)}
-    - **Upcoming Events**: ${JSON.stringify(dashboardData.upcomingEvents)}
-    - **Today's Events**: ${JSON.stringify(dashboardData.todayEvents)}
-    - **Item Borrowing Data**: ${JSON.stringify(dashboardData.borrowings)}
-    - **Top Borrowers**: ${JSON.stringify(dashboardData.borrowersRanking)}
-    - **Assist Frequency**: ${JSON.stringify(dashboardData.assistFrequency)}
-    - **Most Assisted**: ${JSON.stringify(dashboardData.assistFrequency)}
-    - **Quick Stats**: ${JSON.stringify(dashboardData.quickStats)}
-    
-
-    User: ${userMessage}
-    Bot:
-  `;
+  You are a skilled and efficient data analyst assistant bot. Your role is to analyze the provided questions and deliver clear, concise, and informative responses based on the user's inquiry.
+   This system manages inventory, events (including preparations), and item borrowing for an IT support and operations environment — not a library.
+   **User's Question:**  
+   ${userMessage}
+   `;
 };
 
 

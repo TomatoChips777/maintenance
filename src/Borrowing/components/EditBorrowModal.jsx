@@ -20,7 +20,7 @@ function EditBorrowModal({ show, onHide, onSave, borrower }) {
     const month = (d.getMonth() + 1).toString().padStart(2, '0'); 
     const day = d.getDate().toString().padStart(2, '0'); 
     return `${year}-${month}-${day}`; 
-  };
+  }
   useEffect(() => {
     if (borrower) {
       const originalReturnedDate = borrower.returned_date;
