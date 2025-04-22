@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./server
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    volumes:
+      - ./server/uploads:/app/uploads
+    environment:
+      - NODE_ENV=development
+      - MYSQL_HOST=mysql
+    depends_on:
+      - mysql
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - app-network
+    depends_on:
+      - backend
+    env_file:
+      - ./frontend/.env
+
+  mysql:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: lc-its-db
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./lc-its-db.sql:/docker-entrypoint-initdb.d/lc-its-db.sql
+    networks:
+      - app-network
+    ports:
+      - "3307:3306"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+

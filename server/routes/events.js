@@ -171,4 +171,18 @@ router.post('/edit-event', async (req, res) => {
     }
 });
 
+router.delete('/delete-event/:id', async (req, res) => {
+    const { id } = req.params;
+    try {    
+        await runQuery(`DELETE FROM events WHERE id = ?`, [id]);
+        await runQuery(`DELETE FROM event_preparations WHERE event_id = ?`, [id]);
+        req.io.emit("updateEvents");
+        req.io.emit('update');
+        return res.json({ success: true, message: 'Event deleted successfully' });
+    } catch (err) {
+        console.error("Error deleting event:", err);        
+        return res.status(500).json({ success: false, message: 'Failed to delete event' });
+    }
+});
+
 module.exports = router;
