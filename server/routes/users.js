@@ -183,9 +183,9 @@ router.put('/activate-deactivate-user/:userId', async (req, res) => {
 // });
 
 
-router.post('/manual-login', async (req, res) => {
+router.post('/manual-signin', async (req, res) => {
     const { email, password, name, picture, token } = req.body;
-
+    
     if (!email || !password) {
         return res.status(400).json({ error: 'Email and password are required' });
     }

@@ -17,7 +17,7 @@ const commonItems = [
   'EUS Laptop6 w/charger',
 ];
 
-function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange }) {
+function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange,isLoading }) {
   const [selectedCommonItems, setSelectedCommonItems] = useState([]);
   const [customItems, setCustomItems] = useState([{ name: '', quantity: '1' }]);
 
@@ -227,7 +227,13 @@ function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange }
 
         <Modal.Footer>
           <Button variant="secondary" onClick={onHide}>Cancel</Button>
-          <Button variant="primary" type="submit">Add</Button>
+          <Button variant="primary" type="submit">
+          {isLoading ? (
+              <span className="spinner-border spinner-border-sm text-white" role="status" />
+            ) : (
+              'Add'
+            )}
+          </Button>
         </Modal.Footer>
       </Form>
     </Modal>

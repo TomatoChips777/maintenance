@@ -9,7 +9,7 @@ const departments = [
   'Pastoral Services', 'Clinic', 'Alumni Office'
 ];
 
-function EditBorrowModal({ show, onHide, onSave, borrower }) {
+function EditBorrowModal({ show, onHide, onSave, borrower, isLoading }) {
   const {user} = useAuth();
   const [customItems, setCustomItems] = useState([{ name: '', quantity: '1' }]);
   const [editedBorrower, setEditedBorrower] = useState(null);
@@ -261,7 +261,13 @@ function EditBorrowModal({ show, onHide, onSave, borrower }) {
 
         <Modal.Footer>
           <Button variant="secondary" onClick={onHide}>Cancel</Button>
-          <Button variant="primary" type="submit">Save Changes</Button>
+          <Button variant="primary" type="submit">
+          {isLoading ? (
+              <span className="spinner-border spinner-border-sm text-white" role="status" />
+            ) : (
+              'Save Changes'
+            )}
+          </Button>
         </Modal.Footer>
       </Form>
     </Modal>

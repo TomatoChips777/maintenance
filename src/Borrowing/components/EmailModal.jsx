@@ -1,6 +1,6 @@
 import { Modal, Form, Button } from 'react-bootstrap';
 
-function EmailModal({ show, onHide, onSubmit, subject, setSubject, message, setMessage }) {
+function EmailModal({ show, onHide, onSubmit, subject, setSubject, message, setMessage, isLoading }) {
   return (
     <Modal show={show} onHide={onHide} centered size='xl'>
       <Form onSubmit={onSubmit}>
@@ -30,7 +30,13 @@ function EmailModal({ show, onHide, onSubmit, subject, setSubject, message, setM
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={onHide}>Cancel</Button>
-          <Button variant="primary" type="submit">Send Email</Button>
+          <Button variant="primary" type="submit">
+          {isLoading ? (
+              <span className="spinner-border spinner-border-sm text-white" role="status" />
+            ) : (
+              'Send Email'
+            )}
+          </Button>
         </Modal.Footer>
       </Form>
     </Modal>

@@ -39,7 +39,7 @@ WHERE status != 'Returned' AND returned_date < CURDATE()
     const borrowQuery = `
       SELECT item_name, borrower_name, borrow_date, returned_date,status
       FROM borrowed_items
-      ORDER BY created_at DESC
+      ORDER BY created_at DESC LIMIT 5
     `;
     const borrowings = await db.queryAsync(borrowQuery);
 

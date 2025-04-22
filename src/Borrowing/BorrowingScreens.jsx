@@ -30,6 +30,7 @@ function BorrowingScreen() {
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sentLoading, setSentLoading] = useState(false);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newBorrow, setNewBorrow] = useState({
@@ -114,6 +115,7 @@ function BorrowingScreen() {
   };
 
   const handleSave = async (updatedBorrower) => {
+    setSentLoading(false);
     try {
       const response = await axios.put(`${import.meta.env.VITE_UPDATE_ITEM}/${updatedBorrower.id}`, updatedBorrower);
 
@@ -127,6 +129,7 @@ function BorrowingScreen() {
       console.error('Update error:', error);
       alert('An error occurred while updating the record.');
     }
+    setSentLoading(false);
   };
   
   const openEmailModal = (entry) => {
@@ -144,6 +147,7 @@ function BorrowingScreen() {
 
   const sendEmail = async (e) => {
     e.preventDefault();
+    setSentLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_SEND_EMAIL}`, {
         method: 'POST',
@@ -159,6 +163,7 @@ function BorrowingScreen() {
         alert('Email sent successfully!');
         setShowEmailModal(false);
         setSelectedBorrower(null);
+        
       } else {
         throw new Error('Failed to send email');
       }
@@ -166,6 +171,7 @@ function BorrowingScreen() {
       console.error('Email sending error:', error);
       alert('Failed to send email.');
     }
+    setSentLoading(false);
   };
   const handleAddChange = (e) => {
     const { name, value } = e.target;
@@ -173,6 +179,7 @@ function BorrowingScreen() {
   };
 
   const handleAddSubmit = async (borrowData) => {
+    setSentLoading(true);
     try {
       const response = await axios.post(`${import.meta.env.VITE_CREATE_BORROW_ITEM}`, {
         borrower_name: borrowData.borrower_name,
@@ -205,6 +212,7 @@ function BorrowingScreen() {
     } catch (error) {
       console.error('Error submitting borrow:', error);
     }
+    setSentLoading(false);
   };
 
   const handleStatusChange = async (e, entry) => {
@@ -230,9 +238,6 @@ function BorrowingScreen() {
     setItemsPerPage(Number(e.target.value));
     setCurrentPage(1); // Reset to page 1 when page size changes
   };
-
-
-
 
   return (
     <Container className="p-0 y-0" fluid>
@@ -368,6 +373,7 @@ function BorrowingScreen() {
         setSubject={setSubject}
         message={message}
         setMessage={setMessage}
+        isLoading={sentLoading}
       />
 
       <AddBorrowerModal
@@ -376,6 +382,7 @@ function BorrowingScreen() {
         onSubmit={handleAddSubmit}
         newBorrow={newBorrow}
         handleAddChange={handleAddChange}
+        isLoading={sentLoading}
       />
 
       <ViewBorrowModal
@@ -388,6 +395,7 @@ function BorrowingScreen() {
         onHide={() => setShowEditModal(false)}
         borrower={currentBorrower}
         onSave={handleSave}
+        isLoading={sentLoading}
       />
     </Container>
   );

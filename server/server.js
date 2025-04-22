@@ -38,6 +38,8 @@ app.use('/api/inventory', inventory);
 app.use('/api/events', events);
 app.use('/api/notifications', notifications);
 app.use('/api/dashboard', dashboard);
+
+
 app.post('/send-email', async (req, res) => {
   const { to, subject, message } = req.body;
 
