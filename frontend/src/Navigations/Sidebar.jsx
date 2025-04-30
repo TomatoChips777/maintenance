@@ -10,7 +10,7 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
     const routeMap = {
       Dashboard: '/',
       Inventory: '/inventory',
-      Barrowing: '/borrowing',
+      Borrowing: '/borrowing',
       Events: '/events',
       Notifications: '/notifications',
       Users: '/users',
@@ -30,7 +30,7 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
           { key: 'Dashboard', icon: 'speedometer2' },
           {key: 'Users', icon: 'people-fill'},
           { key: 'Inventory', icon: 'box-seam' },
-          { key: 'Barrowing', icon: 'arrow-left-right' },
+          { key: 'Borrowing', icon: 'arrow-left-right' },
           { key: 'Events', icon: 'calendar' },
           { key: 'Notifications', icon: 'bell' },
         ].map(({ key, icon }) => (

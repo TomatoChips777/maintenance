@@ -32,11 +32,11 @@ function App() {
 
     const routeMap = {
       '/': 'Dashboard',
+      '/inventory': 'Inventory',
       '/users': 'Users',
       '/borrowing': 'Borrowing',
-      '/events': 'Calendar',
+      '/events': 'Events',
       '/notifications': 'Notifications',
-      '/inventory': 'Inventory',
 
     };
     setActiveLink(routeMap[path] || 'Dashboard');
