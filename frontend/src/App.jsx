@@ -1,6 +1,6 @@
 // App.jsx
-import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate,useLocation } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -25,7 +25,27 @@ function App() {
     return localStorage.getItem("activeLink") || "Dashboard";
   });
 
+    const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname;
+
+    const routeMap = {
+      '/': 'Dashboard',
+      '/users': 'Users',
+      '/borrowing': 'Borrowing',
+      '/events': 'Calendar',
+      '/notifications': 'Notifications',
+      '/inventory': 'Inventory',
+
+    };
+    setActiveLink(routeMap[path] || 'Dashboard');
+
+    localStorage.setItem("activeLink", activeLink);
+  }, [location]);
+
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
 
   const handleLinkClick = (link) => {
     setActiveLink(link);
@@ -35,12 +55,12 @@ function App() {
   const handleAskButton = (message) => {
     setChatMessage(message); 
   };
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, role } = useAuth();
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <Router>
-      {isAuthenticated ? (
+    <>
+      {isAuthenticated  && role === 'admin' ? (
         <div className="layout">
           <Sidebar
             sidebarOpen={sidebarOpen}
@@ -52,6 +72,7 @@ function App() {
             <div className="content-scroll p-3">
               <ChatWidget askMessage={chatMessage}/>
               <Routes>
+                <>
                 <Route path="/" element={<Dashboard handleAskButton={handleAskButton}/>} />
                 <Route path='/users' element={<Users handleAskButton={handleAskButton}/>}/>
                 <Route path="/inventory" element={<Inventory handleAskButton={handleAskButton} />} />
@@ -59,6 +80,7 @@ function App() {
                 <Route path="/events" element={<EventManager handleAskButton={handleAskButton} />} />
                 <Route path="/notifications" element={<Notifications  handleAskButton={handleAskButton}/>}/>
                 <Route path="*" element={<Navigate to="/" />} />
+                </>
               </Routes>
             </div>
           </div>
@@ -70,7 +92,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       )}
-    </Router>
+      </>
   );
 }
 

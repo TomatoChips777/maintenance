@@ -150,7 +150,7 @@ const Dashboard = ({ handleAskButton }) => {
   };
 
   const conditionCounts = inventoryData.reduce((acc, item) => {
-    const condition = item.status?.toLowerCase(); // make case-insensitive
+    const condition = item.status?.toLowerCase();
     if (condition === 'new') acc.new += 1;
     else if (condition === 'used') acc.used += 1;
     else if (condition === 'old') acc.old += 1;
@@ -161,7 +161,6 @@ const Dashboard = ({ handleAskButton }) => {
   const indexOfLastItem = inventoryPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentInventoryItems = inventoryData.slice(indexOfFirstItem, indexOfLastItem);
-
   const totalPages = Math.ceil(inventoryData.length / itemsPerPage);
 
   const handlePrevPage = () => {
@@ -185,7 +184,6 @@ const Dashboard = ({ handleAskButton }) => {
   const todayEvents = [...ongoingEvents, ...upcomingEvents].filter(event => {
     return new Date(event.startDate).toDateString() === today;
   }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-
 
   // Pie chart for most borrowed items
   const itemFrequency = borrowings.reduce((acc, b) => {

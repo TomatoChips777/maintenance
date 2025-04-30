@@ -123,10 +123,16 @@ function InventoryScreen({ handleAskButton }) {
     setSelectedItem(null);
   };
 
-  const handleDelete = (id) => {
-    setItems(items.filter(item => item.id !== id));
-  };
+  const handleDelete =  async (id) => {
+    try{
 
+      const reponse = await axios.put(`${import.meta.env.VITE_DELETE_INVENTORY_ITEM}/${id}`); 
+      setItems(items.filter(item => item.id !== id));
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
   // Pagination logic
   const handlePageSizeChange = (e) => {
     setItemsPerPage(Number(e.target.value));
@@ -218,7 +224,7 @@ function InventoryScreen({ handleAskButton }) {
                       <i className="bi bi-pencil"></i>
                     </Button>
                     <Button variant="danger" size="sm" className="me-2 mb-1" onClick={() => handleDelete(item.id)}>
-                      <i className="bi bi-trash"></i>
+                      <i className="bi bi-archive"></i>
                     </Button>
                   </td>
                 </tr>
