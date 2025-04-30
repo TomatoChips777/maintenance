@@ -5,8 +5,9 @@ import PaginationControls from '../extra/Paginations';
 import AddUserModal from './components/AddUserModal';
 import EditUserModal from './components/EditUserModal';
 import FormatDate from '../extra/DateFormat';
-
+import { useAuth } from '../../AuthContext';
 function Users() {
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
@@ -107,6 +108,10 @@ function Users() {
   };
 
   const toggleUserStatus = async (userId, currentStatus) => {
+
+    if(user.id === userId){
+      return;
+    }
     const newStatus = currentStatus === 1 ? 0 : 1;
     try {
       const response = await axios.put(`${import.meta.env.VITE_ACTIVATE_DEACTIVATE_USER}/${userId}`, {
