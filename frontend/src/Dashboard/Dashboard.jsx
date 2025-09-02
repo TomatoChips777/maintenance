@@ -181,7 +181,7 @@ const Dashboard = ({ handleAskButton }) => {
   const sortedUpcoming = upcomingEvents.slice().sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
   const today = new Date().toDateString();
-  const todayEvents = [...ongoingEvents, ...upcomingEvents].filter(event => {
+  const todaysReport = [...ongoingEvents, ...upcomingEvents].filter(event => {
     return new Date(event.startDate).toDateString() === today;
   }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
@@ -210,23 +210,22 @@ const Dashboard = ({ handleAskButton }) => {
     <div>
       <div className="d-flex justify-content-end align-items-center mb-3">
         {/* <h2 className="mb-0">Dashboard</h2> */}
-        <Button variant="outline-dark" onClick={() => setShowCreateModal(true)}>
+        {/* <Button variant="outline-dark" onClick={() => setShowCreateModal(true)}>
           + Create Event Preparation
-        </Button>
-
+        </Button> */}
       </div>
 
       <Card className="mb-4">
         <Card.Header className="fw-bold text-primary d-flex justify-content-between">
           Quick Stats
-          <Button variant='primary' size='sm' className='rounded-pill' onClick={() => handleAskButton(`Analyze this data: ${formatQuickStats(quickStats)}`)}><ChatSquareQuoteFill size={14} /></Button></Card.Header>
+          </Card.Header>
         <Card.Body>
           <Row>
             {[
-              { label: "Reports Today", value: quickStats.borrowedToday, variant: "primary" },
-              { label: "Urgent Reports", value: quickStats.overdueReturns, variant: "dark" },
-              { label: "High Priority Reports", value: quickStats.activeBorrowers, variant: "danger" },
-              { label: "Medium Priority Reports", value: quickStats.availableItems, variant: "success" },
+              { label: "Reports Today", value: quickStats.reportsToday, variant: "primary" },
+              { label: "Urgent Reports", value: quickStats.urgentReports, variant: "dark" },
+              { label: "High Priority Reports", value: quickStats.highPriorityReports, variant: "danger" },
+              { label: "Medium Priority Reports", value: quickStats.mediumPriorityReports, variant: "success" },
             ].map(({ label, value, variant }, index) => (
               <Col key={index} sm={6} md={3} className="mb-3">
                 <Card bg={variant} text="white" className="h-100 shadow-sm">
@@ -258,14 +257,14 @@ const Dashboard = ({ handleAskButton }) => {
               <Card className="mb-3">
                 <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
                   Inventory Status
-                  <Button
+                  {/* <Button
                     variant='primary'
                     size='sm'
                     className='rounded-pill'
                     onClick={() => handleAskButton(`Summarize the inventory condition counts: New (${conditionCounts.new}), Used (${conditionCounts.used}), Old (${conditionCounts.old}), Restored (${conditionCounts.restored})`)}
                   >
                     <ChatSquareQuoteFill size={14} />
-                  </Button>
+                  </Button> */}
                 </Card.Header>
                 <Card.Body>
                   <Charts type="inventoryStatus" data={inventoryData} />
@@ -278,14 +277,14 @@ const Dashboard = ({ handleAskButton }) => {
               <Card className="mb-3">
                 <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
                   Borrowers Frequency
-                  <Button
+                  {/* <Button
                     variant='primary'
                     size='sm'
                     className='rounded-pill'
                     onClick={() => handleAskButton(`Summarize top borrowers and their frequency: ${formatBorrowersRanking(borrowersData)}`)}
                   >
                     <ChatSquareQuoteFill size={14} />
-                  </Button>
+                  </Button> */}
                 </Card.Header>
                 <Card.Body>
                   <Charts type="borrowerRanking" data={borrowersData} />
@@ -294,14 +293,14 @@ const Dashboard = ({ handleAskButton }) => {
               <Card className="mb-3">
                 <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
                   Assist Frequencys
-                  <Button
+                  {/* <Button
                     variant='primary'
                     size='sm'
                     className='rounded-pill'
                     onClick={() => handleAskButton(`Assist frequency by personnel: ${formatAssistFrequency(assistFrequency)}`)}
                   >
                     <ChatSquareQuoteFill size={14} />
-                  </Button>
+                  </Button> */}
                 </Card.Header>
                 <Card.Body>
                   <Charts type="assistFrequency" data={assistFrequency} />
@@ -314,35 +313,33 @@ const Dashboard = ({ handleAskButton }) => {
           {/* Today's Events */}
           <Card className='mb-4'>
             <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
-              Today's Events
-              <Button
+              Today's Reports
+              {/* <Button
                 variant='primary'
                 size='sm'
                 className='rounded-pill'
-                onClick={() => handleAskButton(`Here are today's events: ${formatEvents(todayEvents)}`)}
+                onClick={() => handleAskButton(`Here are today's events: ${formatEvents(todaysReport)}`)}
               >
                 <ChatSquareQuoteFill size={14} />
-              </Button>
+              </Button> */}
             </Card.Header>
             <Card.Body>
-              {todayEvents.length === 0 ? (
+              {todaysReport.length === 0 ? (
                 <p>No events scheduled for today</p>
               ) : (
                 <Accordion flush>
-                  {todayEvents.map((event, idx) => (
+                  {todaysReport.map((event, idx) => (
                     <Accordion.Item eventKey={String(idx)} key={idx}>
                       <Accordion.Header>
                         <div className="w-100 d-flex justify-content-between">
                           <span>{event.title}</span>
-                          <span>{FormatDate(event.startDate, 'short')}-{FormatDate(event.endDate, 'short')} | {event.time}</span>
+                          <span>{FormatDate(event.startDate, 'short')} | {event.time}</span>
                         </div>
                       </Accordion.Header>
                       <Accordion.Body>
-                        <strong>Preparations:</strong>
+                        <strong>Description:</strong>
                         <ul className="mb-0">
-                          {(event.preparations || []).map((prep, pIdx) => (
-                            <li key={pIdx}>{prep.name} (x{prep.quantity})</li>
-                          ))}
+                          <li>{event.description}</li>
                         </ul>
                       </Accordion.Body>
                     </Accordion.Item>
@@ -354,35 +351,25 @@ const Dashboard = ({ handleAskButton }) => {
           {/* Ongoing Events */}
           <Card className='mb-4'>
             <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
-              Ongoing Events
-              <Button
-                variant='primary'
-                size='sm'
-                className='rounded-pill'
-                onClick={() => handleAskButton(`Current ongoing events: ${formatEvents(sortedOngoing)}`)}
-              >
-                <ChatSquareQuoteFill size={14} />
-              </Button>
+              Ongoing Maintenance
             </Card.Header>
             <Card.Body>
               {sortedOngoing.length === 0 ? (
-                <p>No ongoing events</p>
+                <p>No ongoing maintenance</p>
               ) : (
                 <Accordion flush>
                   {sortedOngoing.map((event, idx) => (
                     <Accordion.Item eventKey={String(idx)} key={idx}>
                       <Accordion.Header>
                         <div className="w-100 d-flex justify-content-between">
-                          <span>{event.title}</span>
-                          <span>{FormatDate(event.startDate, 'short')}-{FormatDate(event.endDate, 'short')} | {event.time}</span>
+                          <span>{event.title}</span> 
+                          <span>{FormatDate(event.startDate, 'short')} | {event.time}</span>
                         </div>
                       </Accordion.Header>
                       <Accordion.Body>
-                        <strong>Preparations:</strong>
+                         <strong>Description:</strong>
                         <ul className="mb-0">
-                          {(event.preparations || []).map((prep, pIdx) => (
-                            <li key={pIdx}>{prep.name} (x{prep.quantity})</li>
-                          ))}
+                          <li>{event.description}</li>
                         </ul>
                       </Accordion.Body>
                     </Accordion.Item>
@@ -395,15 +382,7 @@ const Dashboard = ({ handleAskButton }) => {
           {/* Upcoming Events */}
           <Card className='mb-4'>
             <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
-              Upcoming Events
-              <Button
-                variant='primary'
-                size='sm'
-                className='rounded-pill'
-                onClick={() => handleAskButton(`Here are upcoming events: ${formatEvents(sortedUpcoming)}`)}
-              >
-                <ChatSquareQuoteFill size={14} />
-              </Button>
+              Recently Done
             </Card.Header>
             <Card.Body>
               {sortedUpcoming.length === 0 ? (
@@ -436,14 +415,6 @@ const Dashboard = ({ handleAskButton }) => {
           <Card>
             <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
               Inventory Overview
-              <Button
-                variant='primary'
-                size='sm'
-                className='rounded-pill'
-                onClick={() => handleAskButton(`Inventory snapshot of ${currentInventoryItems.length} items: ${currentInventoryItems.map(i => `${i.item} (${i.status}/${i.total})`).join(', ')}`)}
-              >
-                <ChatSquareQuoteFill size={14} />
-              </Button>
             </Card.Header>
             <Card.Body>
               <Table responsive bordered hover size="sm">
@@ -508,7 +479,7 @@ const Dashboard = ({ handleAskButton }) => {
       <Card className="mb-5">
         <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
           Recent Borrowing Activity
-          <Button
+          {/* <Button
             variant='primary'
             size='sm'
             className='rounded-pill'
@@ -528,7 +499,7 @@ const Dashboard = ({ handleAskButton }) => {
             }}
           >
             <ChatSquareQuoteFill size={14} />
-          </Button>
+          </Button> */}
         </Card.Header>
         <Card.Body>
           <Table responsive bordered hover>

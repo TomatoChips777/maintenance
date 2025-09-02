@@ -78,19 +78,8 @@ router.get('/:user_id', async (req, res) => {
     //   ORDER BY e.start_datetime ASC
     // `;
     const eventsQuery = `
-  SELECT e.id, e.event_name, e.start_datetime, e.end_datetime,
-         ep.item_name, ep.quantity
-  FROM events e
-  LEFT JOIN event_preparations ep ON e.id = ep.event_id
-  WHERE (
-    (e.start_datetime <= NOW() AND e.end_datetime >= NOW())
-    OR e.start_datetime >= NOW()
-  )
-  AND (
-    e.is_personal = 0 OR e.user_id = ?
-  )
-  ORDER BY e.start_datetime ASC
-`;
+   SELECT * FROM tbl_reports ORDER BY created_at; 
+  `;
 
     const eventsRaw = await db.queryAsync(eventsQuery,[user_id]);
 
@@ -99,18 +88,12 @@ router.get('/:user_id', async (req, res) => {
       if (!eventsMap.has(row.id)) {
         eventsMap.set(row.id, {
           id: row.id,
-          title: row.event_name,
-          startDate: row.start_datetime, // use start_datetime directly for comparison
+          title: row.location,
+          startDate: row.created_at, // use start_datetime directly for comparison
           endDate: row.end_datetime, // use end_datetime directly for comparison
-          time: `${new Date(row.start_datetime).toLocaleTimeString()} - ${new Date(row.end_datetime).toLocaleTimeString()}`,
-          preparations: []
-        });
-      }
-
-      if (row.item_name) {
-        eventsMap.get(row.id).preparations.push({
-          name: row.item_name,
-          quantity: row.quantity
+          time: `${new Date(row.created_at).toLocaleTimeString()}`,
+          priority: row.priority,
+          description: row.description,
         });
       }
     });
@@ -118,20 +101,6 @@ router.get('/:user_id', async (req, res) => {
     const events = Array.from(eventsMap.values());
 
     const now = new Date(); // Get current time
-
-    // // Separate events into ongoing and upcoming
-    // const ongoingEvents = events.filter(event => {
-    //   const eventStart = new Date(event.startDate);
-    //   const eventEnd = new Date(event.endDate);
-
-    //   // Check if the event is ongoing (current time should be between start and end)
-    //   return now >= eventStart && now <= eventEnd;
-    // });
-
-    // const upcomingEvents = events.filter(event => {
-    //   const eventStart = new Date(event.startDate);
-    //   return eventStart > now; // Check if the event is upcoming (start time is after now)
-    // });
 
     const isSameDate = (a, b) => a.toDateString() === b.toDateString();
 
@@ -145,8 +114,8 @@ router.get('/:user_id', async (req, res) => {
       const start = new Date(event.startDate);
       return start > now && !isSameDate(now, start);
     });
-    const todayEvents = events.filter(event => {
-      const start = new Date(event.startDate);
+    const todaysReport = events.filter(event => {
+      const start = new Date(event.created_at);
       return isSameDate(now, start);
     });
 
@@ -156,12 +125,12 @@ router.get('/:user_id', async (req, res) => {
       inventory,
       ongoingEvents,
       upcomingEvents,
-      todayEvents,
+      todaysReport,
       quickStats: {
-        borrowedToday: reportsTodayResult[0].count,
-        overdueReturns: urgentReportsResult[0].count,
-        activeBorrowers: highPriorityReportsResult[0].count,
-        availableItems: mediumPriorityReportsResult[0].count,
+        reportsToday: reportsTodayResult[0].count,
+        urgentReports: urgentReportsResult[0].count,
+        highPriorityReports: highPriorityReportsResult[0].count,
+        mediumPriorityReports: mediumPriorityReportsResult[0].count,
       },
       borrowersRanking: borrowersRankingResult,
       assistFrequency: assistFrequencyResult

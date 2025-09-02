@@ -23,7 +23,7 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
     <div className={`sidebar bg-dark text-white ${sidebarOpen ? '' : 'collapsed'}`}>
       <div className="sidebar-header text-center py-4">
         <i className="bi bi-box-fill fs-1 text-primary"></i>
-        {sidebarOpen && <h5 className="mt-2 mb-0">Inventory System</h5>}
+        {sidebarOpen && <h5 className="mt-2 mb-0">Maintenance System</h5>}
       </div>
       <hr />
       <Nav className="flex-column">
