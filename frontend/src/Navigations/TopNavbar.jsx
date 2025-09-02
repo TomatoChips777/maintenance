@@ -114,7 +114,7 @@ function TopNavbar({ toggleSidebar }) {
         {/* Left side */}
         <div className="d-flex align-items-center">
           <Button variant="outline-secondary" onClick={toggleSidebar} className="me-3">☰</Button>
-          <Navbar.Brand className='text-dark'>Dashboard</Navbar.Brand>
+          <Navbar.Brand className='text-dark'>LC Maintenance</Navbar.Brand>
         </div>
 
         {/* Center - PH Date and Time */}

@@ -56,7 +56,7 @@ const Dashboard = ({ handleAskButton }) => {
         setInventoryData(res.data.inventory || []);
         setUpcomingEvents(res.data.upcomingEvents || []);
         setOngoingEvents(res.data.ongoingEvents || []);
-        setBorrowings(res.data.borrowings || []);
+        setBorrowings(res.data.reportFrequencyResult || []);
         setQuickStats(res.data.quickStats || []);
         setBorrowersData(res.data.borrowersRanking || []);
         setAssistFrequency(res.data.assistFrequency || []);
@@ -208,8 +208,8 @@ const Dashboard = ({ handleAskButton }) => {
   };
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="mb-0">System Dashboard</h2>
+      <div className="d-flex justify-content-end align-items-center mb-3">
+        {/* <h2 className="mb-0">Dashboard</h2> */}
         <Button variant="outline-dark" onClick={() => setShowCreateModal(true)}>
           + Create Event Preparation
         </Button>
@@ -223,10 +223,10 @@ const Dashboard = ({ handleAskButton }) => {
         <Card.Body>
           <Row>
             {[
-              { label: "Borrowed Today", value: quickStats.borrowedToday, variant: "primary" },
-              { label: "Overdue Returns", value: quickStats.overdueReturns, variant: "danger" },
-              { label: "Active Borrowers", value: quickStats.activeBorrowers, variant: "success" },
-              { label: "Available Items", value: quickStats.availableItems, variant: "info" },
+              { label: "Reports Today", value: quickStats.borrowedToday, variant: "primary" },
+              { label: "Urgent Reports", value: quickStats.overdueReturns, variant: "dark" },
+              { label: "High Priority Reports", value: quickStats.activeBorrowers, variant: "danger" },
+              { label: "Medium Priority Reports", value: quickStats.availableItems, variant: "success" },
             ].map(({ label, value, variant }, index) => (
               <Col key={index} sm={6} md={3} className="mb-3">
                 <Card bg={variant} text="white" className="h-100 shadow-sm">
@@ -246,7 +246,7 @@ const Dashboard = ({ handleAskButton }) => {
           <Row className="mb-4">
             <Col>
               <Card className="mb-3">
-                <Card.Header className="fw-semibold text-primary d-flex justify-content-between">Borrowing Frequency
+                <Card.Header className="fw-semibold text-primary d-flex justify-content-between">Reports Frequency
                   <Button variant='primary' size='sm' className='rounded-pill'
                     onClick={() => handleAskButton(`Explain this data: ${formatBorrowingFrequencyText(borrowings, 'day')}`)}><ChatSquareQuoteFill size={14} /></Button>
                 </Card.Header>

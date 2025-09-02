@@ -46,7 +46,7 @@ const Charts = ({ type, data }) => {
   };
 
   if (type === 'borrowingFrequency') {
-    const groupedData = groupByTimeframe(data, 'borrow_date');
+    const groupedData = groupByTimeframe(data, 'created_at');
     const chartData = Object.entries(groupedData)
       .map(([key, count]) => ({ date: key, count }))
       .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -58,7 +58,7 @@ const Charts = ({ type, data }) => {
       <>
         <div className="d-flex justify-content-between align-items-center mb-2">
           <p className="mb-0 text-muted">
-            <strong>Total Borrowings:</strong> {total} | <strong>Date Range:</strong> {firstDate} – {lastDate}
+            <strong>Total Reports:</strong> {total} | <strong>Date Range:</strong> {firstDate} – {lastDate}
           </p>
           {renderTimeframeSelector()}
         </div>

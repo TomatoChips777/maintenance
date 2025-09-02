@@ -1,47 +1,48 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db'); // adjust if your db config is elsewhere
+const db = require('../config/db'); 
 
 // Dashboard Summary Endpoint
 router.get('/:user_id', async (req, res) => {
   const {user_id} = req.params;
   try {
-    const borrowedTodayQuery = `
+    const reportsToday = `
     SELECT COUNT(*) AS count
-    FROM borrowed_items
-    WHERE DATE(borrow_date) = CURDATE()
+    FROM tbl_reports
+    WHERE DATE(created_at) = CURDATE()
   `;
-    const borrowedTodayResult = await db.queryAsync(borrowedTodayQuery);
+    const reportsTodayResult = await db.queryAsync(reportsToday);
     // Overdue Returns: Count items that are not returned and have passed their return date
-    const overdueReturnsQuery = `
-SELECT COUNT(*) AS count
-FROM borrowed_items
-WHERE status != 'Returned' AND returned_date < CURDATE()
-`;
-    const overdueReturnsResult = await db.queryAsync(overdueReturnsQuery);
+    const urgentReports = `
+    SELECT COUNT(*) AS count
+    FROM tbl_reports
+    WHERE priority = 'Urgent' AND status != 'Resolved'
+    `;
+    const urgentReportsResult = await db.queryAsync(urgentReports);
 
     // Active Borrowers: Count distinct borrowers with at least one "Pending" or "Approved" status
-    const activeBorrowersQuery = `
-    SELECT COUNT(DISTINCT borrower_name) AS count
-    FROM borrowed_items
-    WHERE status != 'Returned'
+    const highPriorityReports = `
+    SELECT COUNT(*) AS count
+    FROM tbl_reports
+    WHERE priority = 'High' AND status != 'Resolved'
     `;
-    const activeBorrowersResult = await db.queryAsync(activeBorrowersQuery);
+    const highPriorityReportsResult = await db.queryAsync(highPriorityReports);
 
     // Available Items
-    const availableItemsQuery = `
-      SELECT SUM(quantity) AS available
-      FROM inventory_items
-      WHERE status = 'new' OR status = 'used' OR status = 'restored'
+    const mediumPriorityReports = `
+      SELECT COUNT(*) AS count
+      FROM tbl_reports
+      WHERE priority = 'Medium' AND status != 'Resolved'
     `;
-    const availableItemsResult = await db.queryAsync(availableItemsQuery);
+
+    const mediumPriorityReportsResult = await db.queryAsync(mediumPriorityReports);
     // Fetch recent borrowings
-    const borrowQuery = `
-      SELECT item_name, borrower_name, borrow_date, returned_date,status
-      FROM borrowed_items
+    const reportsFrequency = `
+      SELECT *
+      FROM tbl_reports
       ORDER BY created_at DESC
     `;
-    const borrowings = await db.queryAsync(borrowQuery);
+    const reportFrequencyResult = await db.queryAsync(reportsFrequency);
 
     const borrowersRankingQuery = `
       SELECT borrower_name, COUNT(*) AS borrow_count FROM borrowed_items GROUP BY borrower_name ORDER BY borrow_count DESC LIMIT 10; 
@@ -151,16 +152,16 @@ WHERE status != 'Returned' AND returned_date < CURDATE()
 
     // Compose and send full dashboard data
     res.json({
-      borrowings,
+      reportFrequencyResult,
       inventory,
       ongoingEvents,
       upcomingEvents,
       todayEvents,
       quickStats: {
-        borrowedToday: borrowedTodayResult[0].count,
-        overdueReturns: overdueReturnsResult[0].count,
-        activeBorrowers: activeBorrowersResult[0].count,
-        availableItems: availableItemsResult[0].available,
+        borrowedToday: reportsTodayResult[0].count,
+        overdueReturns: urgentReportsResult[0].count,
+        activeBorrowers: highPriorityReportsResult[0].count,
+        availableItems: mediumPriorityReportsResult[0].count,
       },
       borrowersRanking: borrowersRankingResult,
       assistFrequency: assistFrequencyResult

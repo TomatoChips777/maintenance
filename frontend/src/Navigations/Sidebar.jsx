@@ -9,6 +9,7 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
     // Dagdagan kung kailangan
     const routeMap = {
       Dashboard: '/',
+      Reports: '/reports',
       Inventory: '/inventory',
       Borrowing: '/borrowing',
       Events: '/events',
@@ -28,6 +29,7 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
       <Nav className="flex-column">
         {[
           { key: 'Dashboard', icon: 'speedometer2' },
+          {key: 'Reports', icon: 'clipboard-data'},
           {key: 'Users', icon: 'people-fill'},
           { key: 'Inventory', icon: 'box-seam' },
           { key: 'Borrowing', icon: 'arrow-left-right' },

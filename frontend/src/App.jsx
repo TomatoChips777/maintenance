@@ -17,7 +17,7 @@ import RequestPage from './RequestPage';
 import Notifications from './Notifications/Notifications';
 import Users from './User Management/Users';
 import ChatWidget from './Chatbot/ChatWidget';
-
+import Reports from './Reports/Reports';
 function App() {
   const [chatMessage, setChatMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -37,6 +37,7 @@ function App() {
       '/borrowing': 'Borrowing',
       '/events': 'Events',
       '/notifications': 'Notifications',
+      '/reports': 'Reports',
 
     };
     setActiveLink(routeMap[path] || 'Dashboard');
@@ -75,6 +76,7 @@ function App() {
                 <>
                 <Route path="/" element={<Dashboard handleAskButton={handleAskButton}/>} />
                 <Route path='/users' element={<Users handleAskButton={handleAskButton}/>}/>
+                <Route path='/reports' element={<Reports />}/>
                 <Route path="/inventory" element={<Inventory handleAskButton={handleAskButton} />} />
                 <Route path="/borrowing" element={<BorrowingScreen handleAskButton={handleAskButton} />} />
                 <Route path="/events" element={<EventManager handleAskButton={handleAskButton} />} />

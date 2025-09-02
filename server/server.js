@@ -12,6 +12,7 @@ const inventory = require('./routes/inventory');
 const events = require('./routes/events');
 const notifications = require('./routes/notifications');
 const dashboard = require('./routes/dashboard');
+const reports = require('./routes/reports');
 const cors = require('cors');
 
 const server = http.createServer(app);
@@ -38,7 +39,7 @@ app.use('/api/inventory', inventory);
 app.use('/api/events', events);
 app.use('/api/notifications', notifications);
 app.use('/api/dashboard', dashboard);
-
+app.use('/api/reports', reports);
 
 app.post('/send-email', async (req, res) => {
   const { to, subject, message } = req.body;

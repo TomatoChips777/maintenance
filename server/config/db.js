@@ -5,7 +5,7 @@ const db = mysql.createConnection({
    host: process.env.MYSQL_HOST || 'localhost',
     user: "root",
     password: "",
-    database: "lc-its-db",
+    database: "lc-maintenance-db",
 });
 
 db.connect((err) => {
