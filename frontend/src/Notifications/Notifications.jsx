@@ -124,7 +124,40 @@ function Notifications() {
 
       <Row>
         <Col>
-          {loading ? (
+         {loading ? (
+  <p>Loading notifications...</p>
+) : filteredNotifications.length === 0 ? (
+  <Card className="mb-3 shadow-sm text-center bg-light border-0">
+    <Card.Body>
+      <p className="mb-0 text-muted">No notifications found.</p>
+    </Card.Body>
+  </Card>
+) : (
+  filteredNotifications.map((notification, index) => (
+    <Card
+      key={`${notification.id}-${index}`} 
+      className={`mb-3 shadow-sm border-start border-1 ${notification.is_read ? 'border-secondary bg-white' : 'border-primary bg-light'}`}
+      style={{ cursor: 'pointer', borderRadius: '10px' }}
+      onClick={() => handleNotificationClick(notification)}
+    >
+      <Card.Body className="position-relative">
+        <Card.Title className="fs-6 fw-semibold">
+          <TextTruncate text={notification.message} maxLength={170} />
+        </Card.Title>
+        <Card.Text className="text-muted small">
+          {FormatDate(notification.created_at)}
+        </Card.Text>
+        {!notification.is_read && (
+          <Badge bg="danger" className="position-absolute top-0 end-0 mt-2 me-2">
+            New
+          </Badge>
+        )}
+      </Card.Body>
+    </Card>
+  ))
+)}
+
+          {/* {loading ? (
             <p>Loading notifications...</p>
           ) : filteredNotifications.length === 0 ? (
             <p>No notifications found.</p>
@@ -152,7 +185,7 @@ function Notifications() {
                 </Card.Body>
               </Card>
             ))
-          )}
+          )} */}
         </Col>
       </Row>
 

@@ -39,6 +39,7 @@ function RequestPage() {
     returned_date: '',
     status: 'Pending'
   });
+  
   const [customItems, setCustomItems] = useState([{ name: '', quantity: '' }]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [submitted, setSubmitted] = useState(false);  

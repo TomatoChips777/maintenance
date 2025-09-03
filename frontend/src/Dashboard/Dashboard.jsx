@@ -246,8 +246,8 @@ const Dashboard = ({ handleAskButton }) => {
             <Col>
               <Card className="mb-3">
                 <Card.Header className="fw-semibold text-primary d-flex justify-content-between">Reports Frequency
-                  <Button variant='primary' size='sm' className='rounded-pill'
-                    onClick={() => handleAskButton(`Explain this data: ${formatBorrowingFrequencyText(borrowings, 'day')}`)}><ChatSquareQuoteFill size={14} /></Button>
+                  {/* <Button variant='primary' size='sm' className='rounded-pill'
+                    onClick={() => handleAskButton(`Explain this data: ${formatBorrowingFrequencyText(borrowings, 'day')}`)}><ChatSquareQuoteFill size={14} /></Button> */}
                 </Card.Header>
                 <Card.Body>
                   <Charts type="borrowingFrequency" data={borrowings} />

@@ -29,8 +29,9 @@ router.post('/create-report', upload.single('image'), (req, res) => {
     const { user_id, location, description, is_anonymous, status, priority } = req.body;
     const image_path = req.file ? req.file.filename : null;
     const anonymousStatus = is_anonymous !== undefined ? is_anonymous : 0;
-    const setStatus = status !== undefined ? status : '';
+    const setStatus = status !== undefined ? status : 'Pending';
     const setPriority = priority !== undefined ? priority : 'Medium';
+
 
 
     const query = `INSERT INTO tbl_reports (user_id, location, description, image_path, is_anonymous,status, priority, report_type) VALUES (?, ?, ?, ?, ?,?, ?,'')`;

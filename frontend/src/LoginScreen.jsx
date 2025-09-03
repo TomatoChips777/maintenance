@@ -1,31 +1,42 @@
-import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
-import { useAuth } from '../AuthContext';
-import axios from 'axios';
-import { useState } from 'react';
-import { Button, Form, Container, Row, Col, Card, Alert, Spinner  } from 'react-bootstrap';
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../AuthContext";
+import axios from "axios";
+import { useState } from "react";
+import {
+  Button,
+  Form,
+  Container,
+  Card,
+  Alert,
+  Spinner,
+} from "react-bootstrap";
+import LandingNavbar from "./LandingNavbar";
+import { useNavigate } from "react-router-dom";
 
 const LoginScreen = () => {
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   // Handle manual login
   const handleManualLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_MANUAL_SIGNIN}`, {
-        email,
-        password,
-      });
-
+      const response = await axios.post(
+        `${import.meta.env.VITE_MANUAL_SIGNIN}`,
+        {
+          email,
+          password,
+        }
+      );
       signIn(response.data);
     } catch (error) {
-      setError('Check your email or password');
-    }
-    finally{
+      setError("Check your email or password");
+    } finally {
       setLoading(false);
     }
   };
@@ -34,46 +45,45 @@ const LoginScreen = () => {
   const handleGoogleLogin = async (user) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${import.meta.env.VITE_LOGIN_API}`, {
-        email: user.email,
-        name: user.name,
-        picture: user.photo,
-        token: user.id,
-      });
-
+      const response = await axios.post(
+        `${import.meta.env.VITE_LOGIN_API}`,
+        {
+          email: user.email,
+          name: user.name,
+          picture: user.photo,
+          token: user.id,
+        }
+      );
       signIn(response.data);
     } catch (error) {
-      setError('Check your email or password');
-    }finally{
+      setError("Google login failed");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container
-      className="d-flex justify-content-center align-items-center"
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#f7f7f7',
-      }}
-    >
-      <Row className="w-100 justify-content-center">
-        {/* Left Section: Login Form */}
-        <Col md={6} lg={4}>
-          <Card
-            className="p-4 shadow"
-            style={{
-              borderRadius: '15px',
-              boxShadow: '0px 8px 15px rgba(0, 0, 0, 0.1)',
-              backgroundColor: '#ffffff',
-            }}
-          >
-            <Card.Body>
-              <h2 className="text-center mb-4" style={{ fontWeight: '600' }}>
-                Login
-              </h2>
+    <>
+      <LandingNavbar />
 
-              {/* Google Login */}
+      <Container
+        fluid
+        className="d-flex justify-content-center align-items-center vh-100 bg-light"
+      >
+        <Card
+          className="text-center shadow-lg p-5"
+          style={{ width: "500px", borderRadius: "20px" }}
+        >
+          <Card.Body>
+            <Card.Title className="mb-4 fs-1 fw-bold text-success">
+              Login
+            </Card.Title>
+            <Card.Text className="mb-4 fs-5 text-muted">
+              Sign in with Google or use your account credentials
+            </Card.Text>
+
+            {/* Google Login */}
+            <div className="d-flex justify-content-center mb-4">
               <GoogleLogin
                 onSuccess={(credentialsResponse) => {
                   if (credentialsResponse.credential) {
@@ -85,100 +95,92 @@ const LoginScreen = () => {
                       photo: decodedToken.picture,
                     };
                     handleGoogleLogin(user);
-                  } else {
-                    console.log('Credential is undefined');
                   }
                 }}
-                onError={() => console.log('Error during login')}
+                onError={() => console.log("Error during login")}
                 theme="filled_blue"
-                shape="rectangular"
+                shape="pill"
                 text="signin_with"
-                width="100%"
-                style={{ marginBottom: '1rem' }}
+                size="large"
+                width="350"
               />
+            </div>
 
-              {/* OR Manual Login */}
-              <div className="my-3 text-center">
-                <span>or</span>
-              </div>
+            <div className="my-3">
+              <span className="text-muted">or</span>
+            </div>
+            {/* Error Message */}
+            {error && (
+              <Alert
+                variant="danger"
+                style={{ borderRadius: "10px" }}
+                className="mt-3"
+              >
+                {error}
+              </Alert>
+            )}
+            {/* Manual Login */}
+            <Form onSubmit={handleManualLogin}>
+              <Form.Group controlId="email" className="mb-3">
+                <Form.Control
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={{ borderRadius: "12px", padding: "12px" }}
+                />
+              </Form.Group>
 
-              <Form onSubmit={handleManualLogin}>
-                <Form.Group controlId="email">
-                   {/* Error message for email */}
-                   {error && (
-                    <Form.Text className="text-danger">
-                      {error}
-                    </Form.Text>
-                  )}
-                  <Form.Control
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="mb-3"
-                    style={{ borderRadius: '10px', padding: '10px' }}
+              <Form.Group controlId="password" className="mb-3">
+                <Form.Control
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={{ borderRadius: "12px", padding: "12px" }}
+                />
+              </Form.Group>
+
+              <Button
+                type="submit"
+                variant="dark"
+                className="w-100 mb-3 py-2 fs-5 rounded-pill"
+                disabled={loading}
+              >
+                {loading ? (
+                  <Spinner
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
                   />
-                 
-                </Form.Group>
+                ) : (
+                  "Login"
+                )}
+              </Button>
+            </Form>
 
-                <Form.Group controlId="password">
-                   {/* Error message for password */}
-                   {error && (
-                    <Form.Text className="text-danger">
-                      {error}
-                    </Form.Text>
-                  )}
-                  <Form.Control
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="mb-3"
-                    style={{ borderRadius: '10px', padding: '10px' }}
-                  />
-                 
-                </Form.Group>
 
+
+            <div className="text-center mt-4">
+              <small>
+                Don’t have an account?{" "}
                 <Button
-                  type="submit"
-                  variant="primary"
-                  className="w-100 mb-2"
-                  style={{
-                    borderRadius: '10px',
-                    padding: '12px',
-                    fontWeight: '500',
-                    backgroundColor: '#007bff',
-                    borderColor: '#007bff',
-                  }}
-                  disabled={loading}
+                  variant="link"
+                  className="p-0 text-success fw-bold"
+                  onClick={() => navigate("/")}
                 >
-                    {loading ? (
-                    <Spinner animation="border" size="sm" role="status" aria-hidden="true" />
-                  ) : (
-                    'Login'
-                  )}
+                  Go Back
                 </Button>
-              </Form>
+              </small>
+            </div>
+          </Card.Body>
+        </Card>
+      </Container>
+    </>
 
-              {/* Error Message */}
-              {error && (
-                <Alert variant="danger" style={{ borderRadius: '10px' }}>
-                  {error}
-                </Alert>
-              )}
-
-              <div className="text-center mt-3">
-                <small>
-                  Don't have an account? <a href="/">Go Back</a>
-                </small>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
   );
 };
 

@@ -6,6 +6,7 @@ import CreateReport from './components/CreateReport';
 import ArchiveAlert from './components/ArchiveAlert';
 import axios from 'axios';
 import FormatDate from '../extra/DateFormat';
+import TextTruncate from '../extra/TextTruncate';
 
 function Reports() {
     const [reports, setReports] = useState([]);
@@ -17,7 +18,7 @@ function Reports() {
     const [priorityFilter, setPriorityFilter] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
-
+    const [selectedReport, setSelectedReport] = useState('');
     //fetch reports
     const fetchReports = async () => {
         try {
@@ -47,12 +48,13 @@ function Reports() {
         const startIndex = (currentPage - 1) * itemsPerPage;
         return filteredReports.slice(startIndex, startIndex + itemsPerPage);
     }, [filteredReports, currentPage, itemsPerPage]);
-    
+
     useEffect(() => {
         fetchReports();
     }, []);
 
-    const handleOpenViewModal = () => {
+    const handleOpenViewModal = (report) => {
+        setSelectedReport(report);
         setShowViewModal(true)
     };
     const handleCloseViewModal = () => {
@@ -72,6 +74,11 @@ function Reports() {
         setShowAlert(false);
     };
 
+    const handleStatusChange = async (e, report) =>{
+        const newStatus = e.target.value;
+
+        // if(report.status==)
+    }
 
     const handlePageSizeChange = (e) => {
         setItemsPerPage(Number(e.target.value));
@@ -84,37 +91,57 @@ function Reports() {
                 <h1 className='mb-4 text-center'>
                     Reports List
                 </h1>
-
-                <Row className="mb-3 p-3">
+                <Row className="mb-3 p-3 align-items-end">
+                    {/* Search */}
                     <Col md={4}>
-                        <Form.Control
-                            type='text'
-                            placeholder="Search Reports"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+                        <Form.Group controlId="searchReports">
+                            <Form.Label>Search</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder="Search Reports"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </Form.Group>
                     </Col>
 
-                    <Col md={2}>
-                        <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                            <option value="All">All</option>
-                            <option value="Pending">Pending</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Resolved">Resolved</option>
-                        </Form.Select>
+                    {/* Status Filter */}
+                    <Col md={3}>
+                        <Form.Group controlId="filterStatus">
+                            <Form.Label>Filter By Status</Form.Label>
+                            <Form.Select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="All">All</option>
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                            </Form.Select>
+                        </Form.Group>
                     </Col>
-                    <Col md={2}>
-                        <Form.Select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
-                            <option value="All">All</option>
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                            <option value="Urgent">Urgent</option>
-                        </Form.Select>
+
+                    {/* Priority Filter */}
+                    <Col md={3}>
+                        <Form.Group controlId="filterPriority">
+                            <Form.Label>Filter By Priority</Form.Label>
+                            <Form.Select
+                                value={priorityFilter}
+                                onChange={(e) => setPriorityFilter(e.target.value)}
+                            >
+                                <option value="All">All</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                            </Form.Select>
+                        </Form.Group>
                     </Col>
-                    <Col md={4} className='d-flex justify-content-end align-items-center'>
-                        <Button variant="dark" onClick={() => handleOpenCreateModal()}>
-                            <i className='bi bi-plus-circle me-2'></i>
+
+                    {/* New Report Button */}
+                    <Col md={2} className="d-flex justify-content-end">
+                        <Button variant="dark" onClick={handleOpenCreateModal}>
+                            <i className="bi bi-plus-circle me-2"></i>
                             New Report
                         </Button>
                     </Col>
@@ -139,12 +166,21 @@ function Reports() {
                                 <tr key={report.id}>
                                     <td>{FormatDate(report.created_at)}</td>
                                     <td>{report.reporter_name}</td>
-                                    <td>{report.location}</td>
-                                    <td>{report.description}</td>
+                                    <td><TextTruncate text={report.location} maxLength={30} /></td>
+                                    <td><TextTruncate text={report.description} maxLength={50} /></td>
                                     <td>{report.priority}</td>
-                                    <td className='text-center'>{report.status}</td>
+                                    {/* <td className='text-center'>{report.status}</td> */}
                                     <td className='text-center'>
-                                        <Button variant='info' size='sm' className='me-2' onClick={() => handleOpenViewModal()}>
+                                    <Form.Select value={report.status}
+                                    onChange={(e) => handleStatusChange(e, report)}
+                                    >
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                    </Form.Select>
+                                    </td>
+                                    <td className='text-center'>
+                                        <Button variant='info' size='sm' className='me-2' onClick={() => handleOpenViewModal(report)}>
                                             <i className='bi bi-eye'></i>
                                         </Button>
                                         <Button variant='danger' size='sm' onClick={() => handleShowAlert()}>
@@ -175,6 +211,7 @@ function Reports() {
                 <ViewReport
                     show={showViewModal}
                     handleClose={handleCloseViewModal}
+                    report={selectedReport}
                 />
 
                 <CreateReport

@@ -55,8 +55,6 @@ const CreateReport = ({ show, handleClose }) => {
                 formDataObj.append(key, value);
             }
         });
-
-
         try {
             const response = await axios.post(`${import.meta.env.VITE_CREATE_REPORT}`, formDataObj, {
                 headers: { 'Content-Type': 'multipart/form-data' },

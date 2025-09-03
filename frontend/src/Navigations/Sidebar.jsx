@@ -20,9 +20,9 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
   };
 
   return (
-    <div className={`sidebar bg-dark text-white ${sidebarOpen ? '' : 'collapsed'}`}>
+    <div className={`sidebar bg-success text-white ${sidebarOpen ? '' : 'collapsed'}`}>
       <div className="sidebar-header text-center py-4">
-        <i className="bi bi-box-fill fs-1 text-primary"></i>
+        <i className="bi bi-box-fill fs-1 text-light"></i>
         {sidebarOpen && <h5 className="mt-2 mb-0">Maintenance System</h5>}
       </div>
       <hr />
@@ -39,7 +39,7 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
           <Nav.Link
             key={key}
             className={`d-flex align-items-center px-3 py-2 rounded-0 ${
-              activeLink === key ? 'bg-primary text-white' : 'text-white'
+              activeLink === key ? 'bg-dark text-white' : 'text-white'
             }`}
             href="#"
             onClick={() => handleClick(key)}
