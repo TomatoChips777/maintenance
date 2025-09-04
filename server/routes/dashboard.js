@@ -36,6 +36,15 @@ router.get('/:user_id', async (req, res) => {
     `;
 
     const mediumPriorityReportsResult = await db.queryAsync(mediumPriorityReports);
+
+      const lowPriorityReports = `
+      SELECT COUNT(*) AS count
+      FROM tbl_reports
+      WHERE priority = 'Low' AND status != 'Resolved'
+    `;
+
+    const lowPriorityReportsResult = await db.queryAsync(lowPriorityReports);
+
     // Fetch recent borrowings
     const reportsFrequency = `
       SELECT *
@@ -131,6 +140,7 @@ router.get('/:user_id', async (req, res) => {
         urgentReports: urgentReportsResult[0].count,
         highPriorityReports: highPriorityReportsResult[0].count,
         mediumPriorityReports: mediumPriorityReportsResult[0].count,
+        lowPriorityReports: lowPriorityReportsResult[0].count,
       },
       borrowersRanking: borrowersRankingResult,
       assistFrequency: assistFrequencyResult

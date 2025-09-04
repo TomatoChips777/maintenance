@@ -39,7 +39,7 @@ function App() {
       '/inventory': 'Inventory',
       '/users': 'Users',
       '/borrowing': 'Borrowing',
-      '/events': 'Events',
+      '/events': 'Calendar',
       '/notifications': 'Notifications',
       '/reports': 'Reports',
 
@@ -75,14 +75,14 @@ function App() {
           <div className="main-content">
             <TopNavbar toggleSidebar={toggleSidebar} />
             <div className="content-scroll p-3">
-              <ChatWidget askMessage={chatMessage} />
+              {/* <ChatWidget askMessage={chatMessage} /> */}
               <Routes>
                 <>
                   <Route path="/" element={<Dashboard handleAskButton={handleAskButton} />} />
                   <Route path='/users' element={<Users handleAskButton={handleAskButton} />} />
                   <Route path='/reports' element={<Reports />} />
                   <Route path="/inventory" element={<Inventory handleAskButton={handleAskButton} />} />
-                  <Route path="/borrowing" element={<BorrowingScreen handleAskButton={handleAskButton} />} />
+                  {/* <Route path="/borrowing" element={<BorrowingScreen handleAskButton={handleAskButton} />} /> */}
                   <Route path="/events" element={<EventManager handleAskButton={handleAskButton} />} />
                   <Route path="/notifications" element={<Notifications handleAskButton={handleAskButton} />} />
                   <Route path="*" element={<Navigate to="/" />} />
@@ -91,7 +91,7 @@ function App() {
             </div>
           </div>
         </div>
-      ) : isAuthenticated && role === "staff" ? (
+      ) : isAuthenticated && (role === "staff" || role === 'user') ? (
         <UserDashboard />
       ) : (
         <Routes>
@@ -103,5 +103,4 @@ function App() {
     </>
   );
 }
-
 export default App;

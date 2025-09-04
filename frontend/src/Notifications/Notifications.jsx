@@ -124,48 +124,18 @@ function Notifications() {
 
       <Row>
         <Col>
-         {loading ? (
-  <p>Loading notifications...</p>
-) : filteredNotifications.length === 0 ? (
-  <Card className="mb-3 shadow-sm text-center bg-light border-0">
-    <Card.Body>
-      <p className="mb-0 text-muted">No notifications found.</p>
-    </Card.Body>
-  </Card>
-) : (
-  filteredNotifications.map((notification, index) => (
-    <Card
-      key={`${notification.id}-${index}`} 
-      className={`mb-3 shadow-sm border-start border-1 ${notification.is_read ? 'border-secondary bg-white' : 'border-primary bg-light'}`}
-      style={{ cursor: 'pointer', borderRadius: '10px' }}
-      onClick={() => handleNotificationClick(notification)}
-    >
-      <Card.Body className="position-relative">
-        <Card.Title className="fs-6 fw-semibold">
-          <TextTruncate text={notification.message} maxLength={170} />
-        </Card.Title>
-        <Card.Text className="text-muted small">
-          {FormatDate(notification.created_at)}
-        </Card.Text>
-        {!notification.is_read && (
-          <Badge bg="danger" className="position-absolute top-0 end-0 mt-2 me-2">
-            New
-          </Badge>
-        )}
-      </Card.Body>
-    </Card>
-  ))
-)}
-
-          {/* {loading ? (
+          {loading ? (
             <p>Loading notifications...</p>
           ) : filteredNotifications.length === 0 ? (
-            <p>No notifications found.</p>
+            <Card className="mb-3 shadow-sm text-center bg-light border-0">
+              <Card.Body>
+                <p className="mb-0 text-muted">No notifications found.</p>
+              </Card.Body>
+            </Card>
           ) : (
-            filteredNotifications.map((notification,index) => (
+            filteredNotifications.map((notification, index) => (
               <Card
-                // key={notification.id}
-                key={`${notification.id}-${index}`} 
+                key={`${notification.id}-${index}`}
                 className={`mb-3 shadow-sm border-start border-1 ${notification.is_read ? 'border-secondary bg-white' : 'border-primary bg-light'}`}
                 style={{ cursor: 'pointer', borderRadius: '10px' }}
                 onClick={() => handleNotificationClick(notification)}
@@ -185,73 +155,73 @@ function Notifications() {
                 </Card.Body>
               </Card>
             ))
-          )} */}
+          )}
         </Col>
       </Row>
 
       {selectedNotification && (
-  <Modal show={showModal} onHide={() => setShowModal(false)} centered size='xl'>
-    <Modal.Header closeButton className="bg-light border-0">
-      <Modal.Title>Notification Details</Modal.Title>
-    </Modal.Header>
+        <Modal show={showModal} onHide={() => setShowModal(false)} centered size='xl'>
+          <Modal.Header closeButton className="bg-light border-0">
+            <Modal.Title>Notification Details</Modal.Title>
+          </Modal.Header>
 
-    <Modal.Body>
-      {selectedNotification.title === 'Events' ? (() => {
-        const message = selectedNotification.message;
-        const hasOngoing = message.includes('Ongoing Events');
-        const hasUpcoming = message.includes('Upcoming Events');
+          <Modal.Body>
+            {selectedNotification.title === 'Events' ? (() => {
+              const message = selectedNotification.message;
+              const hasOngoing = message.includes('Ongoing Events');
+              const hasUpcoming = message.includes('Upcoming Events');
 
-        const ongoingText = hasOngoing
-          ? message.split('Upcoming Events')[0].replace('Ongoing Events', '').trim()
-          : '';
+              const ongoingText = hasOngoing
+                ? message.split('Upcoming Events')[0].replace('Ongoing Events', '').trim()
+                : '';
 
-        const upcomingText = hasUpcoming
-          ? message.split('Upcoming Events')[1].trim()
-          : '';
+              const upcomingText = hasUpcoming
+                ? message.split('Upcoming Events')[1].trim()
+                : '';
 
-        return (
-          <Row>
-            {hasOngoing && (
-              <Col>
-                <h6>Ongoing</h6>
-                <pre style={{ whiteSpace: 'pre-wrap' }}>{ongoingText}</pre>
-              </Col>
+              return (
+                <Row>
+                  {hasOngoing && (
+                    <Col>
+                      <h6>Ongoing</h6>
+                      <pre style={{ whiteSpace: 'pre-wrap' }}>{ongoingText}</pre>
+                    </Col>
+                  )}
+                  {hasUpcoming && (
+                    <Col>
+                      <h6>Upcoming</h6>
+                      <pre style={{ whiteSpace: 'pre-wrap' }}>{upcomingText}</pre>
+                    </Col>
+                  )}
+                </Row>
+              );
+            })() : (
+              <Row>
+                <Col>
+                  <pre style={{ whiteSpace: 'pre-wrap' }}>
+                    {selectedNotification.message}
+                  </pre>
+                </Col>
+              </Row>
             )}
-            {hasUpcoming && (
-              <Col>
-                <h6>Upcoming</h6>
-                <pre style={{ whiteSpace: 'pre-wrap' }}>{upcomingText}</pre>
-              </Col>
+
+            <small className='text-muted d-block mt-3'>
+              {FormatDate(selectedNotification.created_at)}
+            </small>
+          </Modal.Body>
+
+          <Modal.Footer className="bg-light border-0">
+            {!selectedNotification.is_read && (
+              <Button variant="primary rounded-0" size='sm' onClick={handleMarkAsRead}>
+                Mark as Read
+              </Button>
             )}
-          </Row>
-        );
-      })() : (
-        <Row>
-          <Col>
-            <pre style={{ whiteSpace: 'pre-wrap' }}>
-              {selectedNotification.message}
-            </pre>
-          </Col>
-        </Row>
+            <Button variant="secondary rounded-0" size='sm' onClick={() => setShowModal(false)}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
       )}
-
-      <small className='text-muted d-block mt-3'>
-        {FormatDate(selectedNotification.created_at)}
-      </small>
-    </Modal.Body>
-
-    <Modal.Footer className="bg-light border-0">
-      {!selectedNotification.is_read && (
-        <Button variant="primary rounded-0" size='sm' onClick={handleMarkAsRead}>
-          Mark as Read
-        </Button>
-      )}
-      <Button variant="secondary rounded-0" size='sm' onClick={() => setShowModal(false)}>
-        Close
-      </Button>
-    </Modal.Footer>
-  </Modal>
-)}
     </Container>
   );
 }

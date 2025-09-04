@@ -75,7 +75,7 @@ const LoginScreen = () => {
           style={{ width: "500px", borderRadius: "20px" }}
         >
           <Card.Body>
-            <Card.Title className="mb-4 fs-1 fw-bold text-success">
+            <Card.Title className="mb-4 fs-1 fw-bold text-dark">
               Login
             </Card.Title>
             <Card.Text className="mb-4 fs-5 text-muted">

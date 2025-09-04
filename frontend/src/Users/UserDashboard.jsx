@@ -7,20 +7,15 @@ import UserTopNavbar from "./UserTopNavbar";
 import UserReports from "./UserReports";
 function UserDashboard() {
   return (
-    <div className="vh-100 d-flex flex-column">
+    <div className="">
       {/* Top Navbar */}
       <UserTopNavbar />
 
       {/* Page Content */}
-      <Container className="flex-grow-1 p-4">
+      <Container className="">
         <Routes>
           <Route path="/user/report" element={<ReportPage />} />
-          <Route
-            path="/user/my-reports"
-            element={
-             <UserReports/>
-            }
-          />
+          <Route path="/user/my-reports" element={<UserReports/>}/>
           <Route path="/user/notifications" element={<Notifications />} />
           <Route path="*" element={<Navigate to="/user/report" replace />} />
         </Routes>

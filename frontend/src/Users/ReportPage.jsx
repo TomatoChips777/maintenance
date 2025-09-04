@@ -15,6 +15,7 @@ function ReportPage() {
     description: "",
     urgency: "Normal",
     image: null,
+    issue_type: ''
   });
 
   const resetForm = () => {
@@ -24,6 +25,7 @@ function ReportPage() {
       description: "",
       urgency: "Normal",
       image: null,
+      issue_type: '',
     });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -118,6 +120,21 @@ function ReportPage() {
                 }
                 className="p-3"
               />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Type of Report</Form.Label>
+             <Form.Select 
+             className="p-3"
+             value={formData.issue_type} 
+             onChange={(e) => 
+             setFormData({ ...formData, issue_type: e.target.value})}>
+              <option value="">Select Category</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Plumbing">Plumbing</option>
+              <option value="Cleaning">Cleaning</option>
+              <option value="General Repair">General Repair</option>
+              <option value="Others">Others</option>
+             </Form.Select>
             </Form.Group>
 
             <Form.Group className="mb-3">

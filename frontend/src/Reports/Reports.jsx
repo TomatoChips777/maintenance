@@ -1,4 +1,4 @@
-import { userEffect, useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, Col, Container, Row, Form, Button, Table } from 'react-bootstrap';
 import PaginationControls from '../extra/Paginations';
 import ViewReport from './components/ViewReport';
@@ -7,6 +7,7 @@ import ArchiveAlert from './components/ArchiveAlert';
 import axios from 'axios';
 import FormatDate from '../extra/DateFormat';
 import TextTruncate from '../extra/TextTruncate';
+import { io } from 'socket.io-client';
 
 function Reports() {
     const [reports, setReports] = useState([]);
@@ -19,6 +20,8 @@ function Reports() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [selectedReport, setSelectedReport] = useState('');
+    const [reportToRemove, setReportToRemove] = useState('');
+
     //fetch reports
     const fetchReports = async () => {
         try {
@@ -35,7 +38,8 @@ function Reports() {
             const matchesSearch =
                 report.description.toLowerCase().includes(search.toLowerCase()) ||
                 report.location.toLowerCase().includes(search.toLowerCase()) ||
-                report.reporter_name.toLowerCase().includes(search.toLowerCase());
+                report.reporter_name.toLowerCase().includes(search.toLowerCase()) ||
+                report.issue_type.toLowerCase().includes(search.toLowerCase());
 
             const matchesStatus = statusFilter === 'All' || report.status === statusFilter;
             const matchesPriority = priorityFilter === 'All' || report.priority === priorityFilter;
@@ -51,6 +55,16 @@ function Reports() {
 
     useEffect(() => {
         fetchReports();
+        const socket = io(`${import.meta.env.VITE_API_URL}`);
+        socket.on('updateReports', () => {
+            
+        fetchReports();
+        });
+
+        return () =>{
+            socket.disconnect();
+        };
+
     }, []);
 
     const handleOpenViewModal = (report) => {
@@ -67,14 +81,16 @@ function Reports() {
     const handleCloseCreateModal = () => {
         setShowCreateModal(false);
     };
-    const handleShowAlert = () => {
+    const handleShowAlert = (report) => {
+
         setShowAlert(true);
+        setReportToRemove(report);
     };
     const handleCloseAlert = () => {
         setShowAlert(false);
     };
 
-    const handleStatusChange = async (e, report) =>{
+    const handleStatusChange = async (e, report) => {
         const newStatus = e.target.value;
 
         // if(report.status==)
@@ -153,6 +169,7 @@ function Reports() {
                         <tr>
                             <th>Date</th>
                             <th>Reported By</th>
+                            <th>Type</th>
                             <th>Location</th>
                             <th>Description</th>
                             <th className='text-center'>Priority</th>
@@ -166,24 +183,28 @@ function Reports() {
                                 <tr key={report.id}>
                                     <td>{FormatDate(report.created_at)}</td>
                                     <td>{report.reporter_name}</td>
+                                    <td>{report.issue_type}</td>
                                     <td><TextTruncate text={report.location} maxLength={30} /></td>
                                     <td><TextTruncate text={report.description} maxLength={50} /></td>
                                     <td>{report.priority}</td>
                                     {/* <td className='text-center'>{report.status}</td> */}
                                     <td className='text-center'>
-                                    <Form.Select value={report.status}
-                                    onChange={(e) => handleStatusChange(e, report)}
-                                    >
-                                    <option value="Pending">Pending</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Resolved">Resolved</option>
-                                    </Form.Select>
+                                        <span
+                                            className={`badge rounded-0 ${report.status === "Pending"
+                                                ? "bg-warning text-dark"
+                                                : report.status === "In Progress"
+                                                    ? "bg-primary"
+                                                    : "bg-success"
+                                                }`}
+                                        >
+                                            {report.status}
+                                        </span> 
                                     </td>
                                     <td className='text-center'>
                                         <Button variant='info' size='sm' className='me-2' onClick={() => handleOpenViewModal(report)}>
                                             <i className='bi bi-eye'></i>
                                         </Button>
-                                        <Button variant='danger' size='sm' onClick={() => handleShowAlert()}>
+                                        <Button variant='danger' size='sm' onClick={() => handleShowAlert(report)}>
                                             <i className='bi bi-trash'></i>
                                         </Button>
                                     </td>
@@ -222,6 +243,7 @@ function Reports() {
                 <ArchiveAlert
                     show={showAlert}
                     handleClose={handleCloseAlert}
+                    report={reportToRemove}
                 />
 
             </Card>

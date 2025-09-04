@@ -37,7 +37,7 @@ router.post('/login', async (req, res) => {
 
             await db.queryAsync(
                 'INSERT INTO tbl_users (name, email, role, image_url, token, status) VALUES (?, ?, ?, ?, ?, ?)',
-                [name, email, 'student', `profile/${imageFileName}`, token, 1]
+                [name, email, 'user', `profile/${imageFileName}`, token, 1]
             );
 
             const newUser = await db.queryAsync('SELECT id, name, email, role, image_url, token FROM tbl_users WHERE email = ?', [email]);

@@ -12,7 +12,7 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
       Reports: '/reports',
       Inventory: '/inventory',
       Borrowing: '/borrowing',
-      Events: '/events',
+      Calendar: '/events',
       Notifications: '/notifications',
       Users: '/users',
     };
@@ -32,8 +32,8 @@ function Sidebar({ sidebarOpen, activeLink, handleLinkClick }) {
           {key: 'Reports', icon: 'clipboard-data'},
           {key: 'Users', icon: 'people-fill'},
           { key: 'Inventory', icon: 'box-seam' },
-          { key: 'Borrowing', icon: 'arrow-left-right' },
-          { key: 'Events', icon: 'calendar' },
+          // { key: 'Borrowing', icon: 'arrow-left-right' },
+          { key: 'Calendar', icon: 'calendar' },
           { key: 'Notifications', icon: 'bell' },
         ].map(({ key, icon }) => (
           <Nav.Link
