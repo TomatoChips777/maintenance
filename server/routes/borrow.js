@@ -95,7 +95,7 @@ router.post('/create-borrow', async (req, res) => {
         department,
         item_name,
         description,
-        returned_date,
+        // returned_date,
         assist_by
     } = req.body;
 
@@ -105,8 +105,8 @@ router.post('/create-borrow', async (req, res) => {
 
     const query = `
         INSERT INTO borrowed_items 
-        (borrower_name, email, department, item_name, description, returned_date, assisted_by)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        (borrower_name, email, department, item_name, description, assisted_by)
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -115,7 +115,7 @@ router.post('/create-borrow', async (req, res) => {
         department,
         item_name,
         description || '',
-        returned_date || null,
+        // returned_date || null,
         assist_by
     ];
 
@@ -129,7 +129,6 @@ router.post('/create-borrow', async (req, res) => {
             department,
             item_name,
             description,
-            returned_date,
             assist_by
         };
 
@@ -157,15 +156,25 @@ router.put('/update/:id', async (req, res) => {
         department,
         item_name,
         description,
-        returned_date,
         assist_by,
         status
     } = req.body;
 
+    // Get the current time in PHT (UTC +8)
+    const phtOffset = 8 * 60; // minutes
+    const currentDate = new Date();
+    const currentTimePHT = new Date(currentDate.getTime() + (phtOffset * 60000));
+    const formattedCurrentTimePHT = currentTimePHT.toISOString().slice(0, 19).replace('T', ' ');
+
     const query = `
         UPDATE borrowed_items
         SET borrower_name = ?, email = ?, department = ?, item_name = ?,
-            description = ?, returned_date = ?, assisted_by = ?, status = ?
+            description = ?, returned_date = CASE
+                WHEN ? = 'Returned' THEN ?
+                WHEN ? = 'Pending' THEN NULL
+                ELSE returned_date
+            END,
+            assisted_by = ?, status = ?
         WHERE id = ?
     `;
 
@@ -175,7 +184,9 @@ router.put('/update/:id', async (req, res) => {
         department,
         item_name,
         description || '',
-        returned_date || null,
+        status,
+        status === 'Returned' ? formattedCurrentTimePHT : null,
+        status,
         assist_by || '',
         status || 'Pending',
         id
@@ -187,6 +198,7 @@ router.put('/update/:id', async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json({ success: false, message: 'Borrow record not found' });
         }
+
         req.io.emit('updateBorrowing');
         req.io.emit('update');
         res.json({ success: true, message: 'Borrow record updated successfully' });
@@ -195,6 +207,54 @@ router.put('/update/:id', async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to update borrow record' });
     }
 });
+
+// // Update Borrow Record
+// router.put('/update/:id', async (req, res) => {
+//     const { id } = req.params;
+//     const {
+//         borrower_name,
+//         email,
+//         department,
+//         item_name,
+//         description,
+//         returned_date,
+//         assist_by,
+//         status
+//     } = req.body;
+
+//     const query = `
+//         UPDATE borrowed_items
+//         SET borrower_name = ?, email = ?, department = ?, item_name = ?,
+//             description = ?, returned_date = ?, assisted_by = ?, status = ?
+//         WHERE id = ?
+//     `;
+
+//     const values = [
+//         borrower_name,
+//         email,
+//         department,
+//         item_name,
+//         description || '',
+//         returned_date || null,
+//         assist_by || '',
+//         status || 'Pending',
+//         id
+//     ];
+
+//     try {
+//         const result = await db.queryAsync(query, values);
+
+//         if (result.affectedRows === 0) {
+//             return res.status(404).json({ success: false, message: 'Borrow record not found' });
+//         }
+//         req.io.emit('updateBorrowing');
+//         req.io.emit('update');
+//         res.json({ success: true, message: 'Borrow record updated successfully' });
+//     } catch (err) {
+//         console.error("Error updating borrow record:", err);
+//         res.status(500).json({ success: false, message: 'Failed to update borrow record' });
+//     }
+// });
 // // Update Borrow Record
 // router.put('/update-status/:id', async (req, res) => {
 //     const { id } = req.params;
@@ -225,14 +285,57 @@ router.put('/update/:id', async (req, res) => {
 // });
 
 
+// router.put('/update-status/:id', async (req, res) => {
+//     const { id } = req.params;
+//     const { status, assist_by } = req.body;
+
+//     // Get the current time in PHT (UTC +8)
+//     const phtOffset = 8 * 60; // PHT is UTC +8 hours
+//     const currentDate = new Date();
+//     const currentTimePHT = new Date(currentDate.getTime() + (phtOffset * 60000)); // Convert UTC to PHT
+
+//     // Format the current time to 'YYYY-MM-DD HH:mm:ss'
+//     const formattedCurrentTimePHT = currentTimePHT.toISOString().slice(0, 19).replace('T', ' ');
+
+//     let query = `
+//         UPDATE borrowed_items 
+//         SET status = ?, assisted_by = ?, 
+//             returned_date = CASE WHEN ? = 'Returned' THEN ? ELSE returned_date END 
+//         WHERE id = ?`;
+
+//     const values = [
+//         status || 'Pending',
+//         assist_by,
+//         status,
+//         status === 'Returned' ? formattedCurrentTimePHT : null,
+//         id
+//     ];
+
+//     try {
+//         const result = await db.queryAsync(query, values);
+
+//         if (result.affectedRows === 0) {
+//             return res.status(404).json({ success: false, message: 'Borrow record not found' });
+//         }
+
+//         req.io.emit('updateBorrowing');
+//         req.io.emit('update');  // Emit the update event to notify clients
+//         res.json({ success: true, message: 'Borrow record updated successfully' });
+//     } catch (err) {
+//         console.error("Error updating borrow record:", err);
+//         res.status(500).json({ success: false, message: 'Failed to update borrow record' });
+//     }
+// });
+
+
 router.put('/update-status/:id', async (req, res) => {
     const { id } = req.params;
     const { status, assist_by } = req.body;
 
     // Get the current time in PHT (UTC +8)
-    const phtOffset = 8 * 60; // PHT is UTC +8 hours
+    const phtOffset = 8 * 60; // minutes
     const currentDate = new Date();
-    const currentTimePHT = new Date(currentDate.getTime() + (phtOffset * 60000)); // Convert UTC to PHT
+    const currentTimePHT = new Date(currentDate.getTime() + (phtOffset * 60000));
 
     // Format the current time to 'YYYY-MM-DD HH:mm:ss'
     const formattedCurrentTimePHT = currentTimePHT.toISOString().slice(0, 19).replace('T', ' ');
@@ -240,7 +343,11 @@ router.put('/update-status/:id', async (req, res) => {
     let query = `
         UPDATE borrowed_items 
         SET status = ?, assisted_by = ?, 
-            returned_date = CASE WHEN ? = 'Returned' THEN ? ELSE returned_date END 
+            returned_date = CASE 
+                WHEN ? = 'Returned' THEN ? 
+                WHEN ? = 'Pending' THEN NULL 
+                ELSE returned_date 
+            END
         WHERE id = ?`;
 
     const values = [
@@ -248,6 +355,7 @@ router.put('/update-status/:id', async (req, res) => {
         assist_by,
         status,
         status === 'Returned' ? formattedCurrentTimePHT : null,
+        status,
         id
     ];
 
@@ -259,7 +367,7 @@ router.put('/update-status/:id', async (req, res) => {
         }
 
         req.io.emit('updateBorrowing');
-        req.io.emit('update');  // Emit the update event to notify clients
+        req.io.emit('update');
         res.json({ success: true, message: 'Borrow record updated successfully' });
     } catch (err) {
         console.error("Error updating borrow record:", err);

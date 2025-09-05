@@ -194,9 +194,9 @@ function Users() {
                     <Button variant="warning" size="sm" className="me-2" onClick={() => handleEdit(user)}>
                       <i className="bi bi-pencil"></i>
                     </Button>
-                    <Button variant="danger" size="sm" onClick={() => handleDelete(user.id)}>
+                    {/* <Button variant="danger" size="sm" onClick={() => handleDelete(user.id)}>
                       <i className="bi bi-trash"></i>
-                    </Button>
+                    </Button> */}
                   </td>
                 </tr>
               ))

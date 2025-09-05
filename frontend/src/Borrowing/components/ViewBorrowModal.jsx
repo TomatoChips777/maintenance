@@ -13,7 +13,7 @@ function ViewBorrowModal({ show, onHide, borrower }) {
     { label: 'Item', value: borrower.item_name },
     { label: 'Description', value: borrower.description },
     { label: 'Borrow Date', value: FormatDate(borrower.borrow_date) },
-    { label: 'Return Date', value: FormatDate(borrower.returned_date) },
+    { label: 'Return Date', value: borrower.returned_date ? FormatDate(borrower.returned_date) : 'N/A' },
     { label: 'Status', value: borrower.status },
   ];
 

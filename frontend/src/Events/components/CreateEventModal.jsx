@@ -79,12 +79,12 @@ function CreateEventModal({
     return (
         <Modal show={show} onHide={onClose} centered size="xl">
             <Modal.Header closeButton>
-                <Modal.Title>Create New Event</Modal.Title>
+                <Modal.Title>Create Preparations</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <Form>
                     <Form.Group className="mb-3">
-                        <Form.Label>Event Name</Form.Label>
+                        <Form.Label>Preparations Name</Form.Label>
                         <Form.Control
                             type="text"
                             placeholder="Enter event name"

@@ -21,6 +21,14 @@ function Reports() {
             console.log("Error fetching reports:", error);
         }
     }
+    const fetchReports2 = async () =>{
+       try{
+        const response = await axios.get(`${import.meta.env.VITE_GET_REPORTS}`);
+        setReports(response.data);
+       }catch(error){
+        console.log("Error fetching reports:", error);
+       }
+    }
 
     useEffect(() =>{
         fetchReports();
@@ -64,19 +72,19 @@ function Reports() {
 
                     <Col md={2}>
                         <Form.Select>
-                            <option value="">All</option>
-                            <option value="">Pending</option>
-                            <option value="">On-Progress</option>
+                            <option value="All">All</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
                             <option value="">Resolved</option>
                         </Form.Select>
                     </Col>
                     <Col md={2}>
                     <Form.Select>
-                        <option value="">All</option>
-                        <option value="">Low</option>
-                        <option value="">Medium</option>
-                        <option value="">High</option>
-                        <option value="">Urgent</option>
+                        <option value="All">All</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Urgent">Urgent</option>
                     </Form.Select>
                     </Col>
                     <Col md={4} className='d-flex justify-content-end align-items-center'>
@@ -96,7 +104,7 @@ function Reports() {
                             <th>Location</th>
                             <th>Description</th>
                             <th className='text-center'>Status</th>
-                            <th className='text-center'>Action</th>
+                            <th className='text-center'>Actions</th>
                         </tr>
                     </thead>
                     <tbody>

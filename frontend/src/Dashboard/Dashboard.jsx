@@ -12,10 +12,13 @@ const Dashboard = () => {
   const [inventoryData, setInventoryData] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [ongoingEvents, setOngoingEvents] = useState([]);
-  const [borrowings, setBorrowings] = useState([]);
+  const [reports, setReports] = useState([]);
   const [quickStats, setQuickStats] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [reportsToday, setReportsToday] = useState([]);
+  const [inProgressReports, setInProgressReports] = useState([]);
+  const [recentlyCompletedReports, setRecentlyCompletedReports] = useState([]);
 
   const fetchData = async () => {
     axios.get(`${import.meta.env.VITE_DASHBOARD_DATA}/${user.id}`)
@@ -23,10 +26,11 @@ const Dashboard = () => {
         setInventoryData(res.data.inventory || []);
         setUpcomingEvents(res.data.upcomingEvents || []);
         setOngoingEvents(res.data.ongoingEvents || []);
-        setBorrowings(res.data.reportFrequencyResult || []);
+        setReports(res.data.reportFrequencyResult || []);
         setQuickStats(res.data.quickStats || []);
-        setBorrowersData(res.data.borrowersRanking || []);
-        setAssistFrequency(res.data.assistFrequency || []);
+        setReportsToday(res.data.reportsTodayList)
+        setInProgressReports(res.data.inProgressList || []);
+        setRecentlyCompletedReports(res.data.recentlyCompletedList || []);
         setLoading(false);
       })
       .catch(err => {
@@ -50,14 +54,6 @@ const Dashboard = () => {
   if (loading) {
     return <div className="text-center mt-5"><Spinner animation="border" variant="primary" /></div>;
   }
-
-  const sortedOngoing = ongoingEvents.slice().sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-  const sortedUpcoming = upcomingEvents.slice().sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-
-  const today = new Date().toDateString();
-  const todaysReport = [...ongoingEvents, ...upcomingEvents].filter(event => {
-    return new Date(event.startDate).toDateString() === today;
-  }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
   return (
     <div>
@@ -96,7 +92,7 @@ const Dashboard = () => {
                 <Card.Header className="fw-semibold text-primary d-flex justify-content-between">Reports Frequency
                 </Card.Header>
                 <Card.Body>
-                  <Charts type="borrowingFrequency" data={borrowings} />
+                  <Charts type="borrowingFrequency" data={reports} />
                 </Card.Body>
               </Card>
 
@@ -118,22 +114,22 @@ const Dashboard = () => {
               Today's Reports
             </Card.Header>
             <Card.Body>
-              {todaysReport.length === 0 ? (
-                <p>No events scheduled for today</p>
+              {reportsToday.length === 0 ? (
+                <p>No task reported for today</p>
               ) : (
                 <Accordion flush>
-                  {todaysReport.map((event, idx) => (
+                  {reportsToday.map((report, idx) => (
                     <Accordion.Item eventKey={String(idx)} key={idx}>
                       <Accordion.Header>
                         <div className="w-100 d-flex justify-content-between">
-                          <span>{event.title}</span>
-                          <span>{FormatDate(event.startDate, 'short')} | {event.time}</span>
+                          <span>{report.location}</span>
+                          <span>{FormatDate(report.created_at, 'short')} | {report.time}</span>
                         </div>
                       </Accordion.Header>
                       <Accordion.Body>
                         <strong>Description:</strong>
                         <ul className="mb-0">
-                          <li>{event.description}</li>
+                          <li>{report.description}</li>
                         </ul>
                       </Accordion.Body>
                     </Accordion.Item>
@@ -142,8 +138,71 @@ const Dashboard = () => {
               )}
             </Card.Body>
           </Card>
-          {/* Ongoing Events */}
+
           <Card className='mb-4'>
+            <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+              In Progress Reports
+            </Card.Header>
+            <Card.Body>
+              {inProgressReports.length === 0 ? (
+                <p>No reports in progress</p>
+              ) : (
+                <Accordion flush>
+                  {inProgressReports.map((report, idx) => (
+                    <Accordion.Item eventKey={String(idx)} key={report.id}>
+                      <Accordion.Header>
+                        <div className="w-100 d-flex justify-content-between">
+                          <span>{report.location}</span>
+                          <span>{FormatDate(report.updated_at, 'short')} | {report.time}</span>
+                        </div>
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <strong>Priority:</strong> {report.priority} <br />
+                        <strong>Description:</strong>
+                        <ul className="mb-0">
+                          <li>{report.description}</li>
+                        </ul>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  ))}
+                </Accordion>
+              )}
+            </Card.Body>
+          </Card>
+
+          <Card className='mb-4'>
+            <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
+              Recently Completed Reports
+            </Card.Header>
+            <Card.Body>
+              {recentlyCompletedReports.length === 0 ? (
+                <p>No reports completed recently</p>
+              ) : (
+                <Accordion flush>
+                  {recentlyCompletedReports.map((report, idx) => (
+                    <Accordion.Item eventKey={String(idx)} key={report.id}>
+                      <Accordion.Header>
+                        <div className="w-100 d-flex justify-content-between">
+                          <span>{report.location}</span>
+                          <span>{FormatDate(report.updated_at, 'short')}  | {report.time}</span>
+                        </div>
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <strong>Priority:</strong> {report.priority} <br />
+                        <strong>Description:</strong>
+                        <ul className="mb-0">
+                          <li>{report.description}</li>
+                        </ul>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  ))}
+                </Accordion>
+              )}
+            </Card.Body>
+          </Card>
+
+          {/* Ongoing task */}
+          {/* <Card className='mb-4'>
             <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
               Ongoing Maintenance
             </Card.Header>
@@ -171,16 +230,16 @@ const Dashboard = () => {
                 </Accordion>
               )}
             </Card.Body>
-          </Card>
+          </Card> */}
 
-          {/* Upcoming Events */}
-          <Card className='mb-4'>
+          {/* Recent Completed Task */}
+          {/* <Card className='mb-4'>
             <Card.Header className="fw-semibold text-primary d-flex justify-content-between">
-              Recently Done
+              Recently Completed Task
             </Card.Header>
             <Card.Body>
               {sortedUpcoming.length === 0 ? (
-                <p>No upcoming events</p>
+                <p>No recent completed task</p>
               ) : (
                 <Accordion flush>
                   {sortedUpcoming.map((event, idx) => (
@@ -204,7 +263,7 @@ const Dashboard = () => {
                 </Accordion>
               )}
             </Card.Body>
-          </Card>
+          </Card> */}
           {/* Inventory Table */}
           <DashboardInventoryCard inventoryData={inventoryData} />
         </Col>

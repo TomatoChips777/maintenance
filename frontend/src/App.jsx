@@ -13,17 +13,12 @@ import LoginScreen from './LoginScreen';
 import { useAuth } from '../AuthContext';
 import Inventory from './Inventory/Inventory';
 import Dashboard from './Dashboard/Dashboard';
-import RequestPage from './RequestPage';
 import Notifications from './Notifications/Notifications';
 import Users from './User Management/Users';
-import ChatWidget from './Chatbot/ChatWidget';
 import Reports from './Reports/Reports';
-// import ReportPage from './ReportPage';
 import LandingPage from './LandingPage';
 import UserDashboard from './Users/UserDashboard';
-import ReportPage from './Users/ReportPage';
 function App() {
-  const [chatMessage, setChatMessage] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeLink, setActiveLink] = useState(() => {
     return localStorage.getItem("activeLink") || "Dashboard";
@@ -56,10 +51,6 @@ function App() {
     setActiveLink(link);
     localStorage.setItem("activeLink", link);
   };
-
-  const handleAskButton = (message) => {
-    setChatMessage(message);
-  };
   const { isAuthenticated, isLoading, role } = useAuth();
   if (isLoading) return <div>Loading...</div>;
 
@@ -75,16 +66,15 @@ function App() {
           <div className="main-content">
             <TopNavbar toggleSidebar={toggleSidebar} />
             <div className="content-scroll p-3">
-              {/* <ChatWidget askMessage={chatMessage} /> */}
               <Routes>
                 <>
-                  <Route path="/" element={<Dashboard handleAskButton={handleAskButton} />} />
-                  <Route path='/users' element={<Users handleAskButton={handleAskButton} />} />
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path='/users' element={<Users />} />
                   <Route path='/reports' element={<Reports />} />
-                  <Route path="/inventory" element={<Inventory handleAskButton={handleAskButton} />} />
-                  {/* <Route path="/borrowing" element={<BorrowingScreen handleAskButton={handleAskButton} />} /> */}
-                  <Route path="/events" element={<EventManager handleAskButton={handleAskButton} />} />
-                  <Route path="/notifications" element={<Notifications handleAskButton={handleAskButton} />} />
+                  <Route path="/inventory" element={<Inventory />} />
+                  <Route path="/borrowing" element={<BorrowingScreen />} />
+                  <Route path="/events" element={<EventManager />} />
+                  <Route path="/notifications" element={<Notifications />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </>
               </Routes>

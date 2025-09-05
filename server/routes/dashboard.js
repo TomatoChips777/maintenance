@@ -6,12 +6,12 @@ const db = require('../config/db');
 router.get('/:user_id', async (req, res) => {
   const {user_id} = req.params;
   try {
-    const reportsToday = `
-    SELECT COUNT(*) AS count
-    FROM tbl_reports
-    WHERE DATE(created_at) = CURDATE()
-  `;
-    const reportsTodayResult = await db.queryAsync(reportsToday);
+  //   const reportsToday = `
+  //   SELECT COUNT(*) AS count
+  //   FROM tbl_reports
+  //   WHERE DATE(created_at) = CURDATE()
+  // `;
+  //   const reportsTodayResult = await db.queryAsync(reportsToday);
     // Overdue Returns: Count items that are not returned and have passed their return date
     const urgentReports = `
     SELECT COUNT(*) AS count
@@ -76,16 +76,6 @@ router.get('/:user_id', async (req, res) => {
     `;
     const inventory = await db.queryAsync(inventoryQuery);
 
-    // Fetch ongoing and upcoming events with preparations
-    // const eventsQuery = `
-    //   SELECT e.id, e.event_name, e.start_datetime, e.end_datetime,
-    //          ep.item_name, ep.quantity
-    //   FROM events e
-    //   LEFT JOIN event_preparations ep ON e.id = ep.event_id
-    //   WHERE e.start_datetime <= NOW() AND e.end_datetime >= NOW() -- ongoing events
-    //      OR e.start_datetime >= NOW() -- upcoming events
-    //   ORDER BY e.start_datetime ASC
-    // `;
     const eventsQuery = `
    SELECT * FROM tbl_reports ORDER BY created_at; 
   `;
@@ -128,6 +118,47 @@ router.get('/:user_id', async (req, res) => {
       return isSameDate(now, start);
     });
 
+
+    const reportsTodayQuery = `
+      SELECT COUNT(*) AS count
+      FROM tbl_reports
+      WHERE DATE(created_at) = CURDATE()
+        AND archived = 0
+    `;
+    const reportsTodayResult = await db.queryAsync(reportsTodayQuery);
+
+    const reportsTodayListQuery = `
+     SELECT id, location, description, priority, created_at, updated_at,
+      TIME_FORMAT(updated_at, '%h:%i %p') AS time
+      FROM tbl_reports
+      WHERE DATE(created_at) = CURDATE()
+        AND archived = 0 AND status = 'Pending'
+    `;
+    const reportsTodayList = await db.queryAsync(reportsTodayListQuery);
+    // In Progress Reports (list)
+    const inProgressListQuery = `
+      SELECT id, location, description, priority, created_at, updated_at,
+      TIME_FORMAT(updated_at, '%h:%i %p') AS time
+      FROM tbl_reports
+      WHERE status = 'In Progress'
+        AND archived = 0
+      ORDER BY updated_at DESC
+      LIMIT 10
+    `;
+    const inProgressList = await db.queryAsync(inProgressListQuery);
+
+    // Recently Completed Reports (list)
+    const recentlyCompletedListQuery = `
+      SELECT id, location, description, priority, created_at, updated_at,
+      TIME_FORMAT(updated_at, '%h:%i %p') AS time
+      FROM tbl_reports
+      WHERE status IN ('Resolved', 'Completed')
+        AND archived = 0
+      ORDER BY updated_at DESC
+      LIMIT 10
+    `;
+    const recentlyCompletedList = await db.queryAsync(recentlyCompletedListQuery);
+
     // Compose and send full dashboard data
     res.json({
       reportFrequencyResult,
@@ -135,12 +166,16 @@ router.get('/:user_id', async (req, res) => {
       ongoingEvents,
       upcomingEvents,
       todaysReport,
+      reportsTodayList,
+      inProgressList,
+      recentlyCompletedList,
       quickStats: {
         reportsToday: reportsTodayResult[0].count,
         urgentReports: urgentReportsResult[0].count,
         highPriorityReports: highPriorityReportsResult[0].count,
         mediumPriorityReports: mediumPriorityReportsResult[0].count,
         lowPriorityReports: lowPriorityReportsResult[0].count,
+        
       },
       borrowersRanking: borrowersRankingResult,
       assistFrequency: assistFrequencyResult

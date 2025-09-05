@@ -70,7 +70,7 @@ const ViewReport = ({ show, handleClose, report }) => {
       );
 
       if (response.status === 200) {
-        console.log("Report updated:", response.data);
+        // console.log("Report updated:", response.data);
         handleClose();
       } else {
         alert("Failed to save changes. Please try again.");

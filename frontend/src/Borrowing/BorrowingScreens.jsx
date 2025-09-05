@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Container, Table, Form, Button, Row, Col, Card } from 'react-bootstrap';
+import { Container, Table, Form, Button, Row, Col, Card, Modal } from 'react-bootstrap';
 import emailjs from 'emailjs-com';
 import EmailModal from './components/EmailModal';
 import AddBorrowerModal from './components/AddBorrowerModal';
@@ -33,6 +33,9 @@ function BorrowingScreen() {
   const [sentLoading, setSentLoading] = useState(false);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState(null);
+
   const [newBorrow, setNewBorrow] = useState({
     borrower_name: '',
     email: '',
@@ -131,7 +134,7 @@ function BorrowingScreen() {
     }
     setSentLoading(false);
   };
-  
+
   const openEmailModal = (entry) => {
     setSelectedBorrower(entry);
     setShowEmailModal(true);
@@ -163,7 +166,7 @@ function BorrowingScreen() {
         alert('Email sent successfully!');
         setShowEmailModal(false);
         setSelectedBorrower(null);
-        
+
       } else {
         throw new Error('Failed to send email');
       }
@@ -215,19 +218,33 @@ function BorrowingScreen() {
     setSentLoading(false);
   };
 
-  const handleStatusChange = async (e, entry) => {
+  const handleStatusChange = (e, entry) => {
     const newStatus = e.target.value;
 
 
     if (entry.status === 'Returned' && newStatus !== 'Returned') {
-      const confirmChange = window.confirm('This item has already been returned. Do you want to change its status?');
-      if (!confirmChange) {
-        return;
-      }
+      // const confirmChange = window.confirm('This item has already been returned. Do you want to change its status?');
+      // if (!confirmChange) {
+      //   return;
+      // }
+      setPendingStatusChange({ entry, newStatus });
+      setShowConfirmModal(true);
+      return;
     }
+
+    applyStatusChange(entry, newStatus);
+    // try {
+    //   const updatedBorrower = { ...entry, status: newStatus, assist_by: user.name };
+    //   const response = await axios.put(`${import.meta.env.VITE_UPDATE_BORROW_ITEM_STATUS}/${entry.id}`, updatedBorrower);
+    // } catch (error) {
+    //   console.error('Error updating status:', error);
+    //   alert('An error occurred while updating the status.');
+    // }
+  };
+  const applyStatusChange = async (entry, newStatus) => {
     try {
       const updatedBorrower = { ...entry, status: newStatus, assist_by: user.name };
-      const response = await axios.put(`${import.meta.env.VITE_UPDATE_BORROW_ITEM_STATUS}/${entry.id}`, updatedBorrower);
+      await axios.put(`${import.meta.env.VITE_UPDATE_BORROW_ITEM_STATUS}/${entry.id}`, updatedBorrower);
     } catch (error) {
       console.error('Error updating status:', error);
       alert('An error occurred while updating the status.');
@@ -258,7 +275,7 @@ function BorrowingScreen() {
             <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="All">All Statuses</option>
               <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
+              {/* <option value="Approved">Approved</option> */}
               <option value="Returned">Returned</option>
             </Form.Select>
           </Col>
@@ -294,7 +311,7 @@ function BorrowingScreen() {
                 <th>Department</th>
                 <th>Item</th>
                 <th>Description</th>
-                <th>Borrow Date</th>
+                <th>Borrowed Date</th>
                 <th>Returned Date</th>
                 <th>Assist By</th>
                 <th className='text-center'>Status</th>
@@ -304,7 +321,7 @@ function BorrowingScreen() {
             <tbody>
               {currentData.length > 0 ? (
                 currentData.map(entry => (
-                  <tr key={entry.id} className={isOverdue(entry.returned_date, entry.status) ? 'table-danger' : ''}>
+                  <tr key={entry.id}>
                     <td>{entry.id}</td>
                     <td>{entry.borrower_name}</td>
                     <td>{entry.email}</td>
@@ -321,7 +338,6 @@ function BorrowingScreen() {
                         onChange={(e) => handleStatusChange(e, entry)}
                       >
                         <option value="Pending">Pending</option>
-                        <option value="Approved">Approved</option>
                         <option value="Returned">Returned</option>
                       </Form.Select>
                     </td>
@@ -333,14 +349,6 @@ function BorrowingScreen() {
 
                       <Button variant="warning" size="sm " className="me-2 mb-1" onClick={() => handleEdit(entry)}>
                         <i className="bi bi-pencil"></i>
-                      </Button>
-
-                      <Button variant="danger" size="sm" className="me-2 mb-1">
-                        <i className="bi bi-trash"></i>
-                      </Button>
-
-                      <Button variant="success" size="sm " className="me-2 mb-1" onClick={() => openEmailModal(entry)}>
-                        <i className="bi bi-envelope-fill"></i>
                       </Button>
                     </td>
                   </tr>
@@ -397,6 +405,30 @@ function BorrowingScreen() {
         onSave={handleSave}
         isLoading={sentLoading}
       />
+
+      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Status Change</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          This item has already been returned. Are you sure you want to set it back to <strong>Pending</strong>?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              applyStatusChange(pendingStatusChange.entry, pendingStatusChange.newStatus);
+              setShowConfirmModal(false);
+              setPendingStatusChange(null);
+            }}
+          >
+            Yes, Change
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }

@@ -10,43 +10,27 @@ const departments = [
 ];
 
 function EditBorrowModal({ show, onHide, onSave, borrower, isLoading }) {
-  const {user} = useAuth();
+  const { user } = useAuth();
   const [customItems, setCustomItems] = useState([{ name: '', quantity: '1' }]);
   const [editedBorrower, setEditedBorrower] = useState(null);
-  const formatDate = (date) => {
-    if (!date) return ''; 
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = (d.getMonth() + 1).toString().padStart(2, '0'); 
-    const day = d.getDate().toString().padStart(2, '0'); 
-    return `${year}-${month}-${day}`; 
-  }
+
   useEffect(() => {
     if (borrower) {
-      const originalReturnedDate = borrower.returned_date;
-      const formattedReturnedDate = formatDate(originalReturnedDate);
-  
-      setEditedBorrower({
-        ...borrower,
-        returned_date: formattedReturnedDate, // Set the formatted date here
-      });
-  
+      setEditedBorrower({ ...borrower });
+
       const parsedCustomItems = borrower.item_name
         ? borrower.item_name.split(', ').map(item => {
             const [name, quantity] = item.split(' (x');
             return { name: name.trim(), quantity: quantity ? quantity.replace(')', '') : '1' };
           })
         : [{ name: '', quantity: '1' }];
-  
       setCustomItems(parsedCustomItems);
     } else {
       setEditedBorrower(null);
     }
   }, [borrower]);
-  
-  if (!editedBorrower) {
-    return null;
-  }
+
+  if (!editedBorrower) return null;
 
   const handleCustomItemChange = (idx, field, value) => {
     const updated = [...customItems];
@@ -54,9 +38,7 @@ function EditBorrowModal({ show, onHide, onSave, borrower, isLoading }) {
     setCustomItems(updated);
   };
 
-  const addCustomItemField = () => {
-    setCustomItems([...customItems, { name: '', quantity: '1' }]);
-  };
+  const addCustomItemField = () => setCustomItems([...customItems, { name: '', quantity: '1' }]);
 
   const removeCustomItemField = (idx) => {
     const updated = [...customItems];
@@ -68,61 +50,28 @@ function EditBorrowModal({ show, onHide, onSave, borrower, isLoading }) {
     const { name, value } = e.target;
     setEditedBorrower({
       ...editedBorrower,
-      [name]: value
+      [name]: value,
     });
   };
 
-  // const internalHandleSubmit = (e) => {
-  //   e.preventDefault();
-
-  //   const allItems = customItems.map(item => {
-  //     if (item.name.trim()) {
-  //       return item.quantity ? `${item.name} (x${item.quantity})` : item.name;
-  //     }
-  //     return null;
-  //   }).filter(item => item); // Remove any null entries
-
-  //   const finalForm = {
-  //     ...editedBorrower,
-  //     assist_by: user.name,
-  //     item_name: allItems.join(', '),
-  //     customItems: customItems.map(item => `${item.name} (x${item.quantity})`)
-  //   };
-
-  //   onSave(finalForm);
-  //   onHide();
-  // };
-
   const internalHandleSubmit = (e) => {
     e.preventDefault();
-  
-    const allItems = customItems.map(item => {
-      if (item.name.trim()) {
-        return item.quantity ? `${item.name} (x${item.quantity})` : item.name;
-      }
-      return null;
-    }).filter(item => item); // Remove any null entries
-  
-    // Set return date to 5 PM PH time
-    const returnDate = new Date(editedBorrower.returned_date);
-    returnDate.setHours(17, 0, 0, 0); // 5:00 PM local time
-    const phTime = new Date(returnDate.getTime() - (returnDate.getTimezoneOffset() * 60000))
-      .toISOString()
-      .slice(0, 19)
-      .replace('T', ' ');
-  
+
+    const allItems = customItems
+      .map(item => (item.name.trim() ? `${item.name} (x${item.quantity})` : null))
+      .filter(item => item);
+
     const finalForm = {
       ...editedBorrower,
       assist_by: user.name,
-      returned_date: phTime,
       item_name: allItems.join(', '),
-      customItems: customItems.map(item => `${item.name} (x${item.quantity})`)
+      customItems: customItems.map(item => `${item.name} (x${item.quantity})`),
     };
 
     onSave(finalForm);
     onHide();
   };
-  
+
   return (
     <Modal show={show} onHide={onHide} centered size="xl">
       <Form onSubmit={internalHandleSubmit}>
@@ -130,71 +79,71 @@ function EditBorrowModal({ show, onHide, onSave, borrower, isLoading }) {
           <Modal.Title>Edit Borrowing Record</Modal.Title>
         </Modal.Header>
 
-        <Modal.Body className='p-0'>
+        <Modal.Body className="p-0">
           <Card>
             <Card.Body>
-              <Row className=''>
-              <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Borrower Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="borrower_name"
-                  value={editedBorrower.borrower_name}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-              </Col>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Borrower Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="borrower_name"
+                      value={editedBorrower.borrower_name}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Form.Group>
+                </Col>
 
-              <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  name="email"
-                  value={editedBorrower.email}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-              </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      value={editedBorrower.email}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Form.Group>
+                </Col>
               </Row>
-              
 
-              <Row className=''>
-              <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Department</Form.Label>
-                <Form.Select
-                  name="department"
-                  value={editedBorrower.department}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select department</option>
-                  {departments.map((dept, idx) => (
-                    <option key={idx} value={dept}>{dept}</option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-              </Col>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Department</Form.Label>
+                    <Form.Select
+                      name="department"
+                      value={editedBorrower.department}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select department</option>
+                      {departments.map((dept, idx) => (
+                        <option key={idx} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
 
-              <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label>Return Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="returned_date"
-                  // value={editedBorrower.returned_date}
-                  value={editedBorrower.returned_date || ''} 
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-              </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Return Date</Form.Label>
+                    <Form.Control
+                      type="date"
+                      name="returned_date"
+                      value={editedBorrower.returned_date || ''}
+                      onChange={handleChange}
+                    />
+                  </Form.Group>
+                </Col>
               </Row>
-              {/* Add Custom Items */}
+
+              {/* Custom Items */}
               <Form.Group className="mb-3">
                 <Form.Label>Add Custom Item(s)</Form.Label>
                 {customItems.map((item, idx) => (
@@ -240,8 +189,6 @@ function EditBorrowModal({ show, onHide, onSave, borrower, isLoading }) {
                 />
               </Form.Group>
 
-              
-
               <Form.Group className="mb-3">
                 <Form.Label>Status</Form.Label>
                 <Form.Select
@@ -260,9 +207,11 @@ function EditBorrowModal({ show, onHide, onSave, borrower, isLoading }) {
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={onHide}>Cancel</Button>
+          <Button variant="secondary" onClick={onHide}>
+            Cancel
+          </Button>
           <Button variant="primary" type="submit">
-          {isLoading ? (
+            {isLoading ? (
               <span className="spinner-border spinner-border-sm text-white" role="status" />
             ) : (
               'Save Changes'

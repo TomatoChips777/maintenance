@@ -38,9 +38,9 @@ function EditUserModal({ show, onHide, onSave, user, handleChange }) {
               value={user.role}
               onChange={handleChange}
             >
-              <option value="User">User</option>
-              <option value="Staff">Staff</option>
-              <option value="Admin">Admin</option>
+              <option value="user">User</option>
+              <option value="staff">Staff</option>
+              <option value="admin">Admin</option>
             </Form.Control>
           </Form.Group>
 

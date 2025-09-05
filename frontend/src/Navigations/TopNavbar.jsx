@@ -179,7 +179,7 @@ function TopNavbar({ toggleSidebar }) {
       </Navbar>
 
       {selectedNotification && (
-        <Modal show={showModal} onHide={() => setShowModal(false)} size='lg'>
+        <Modal show={showModal} onHide={() => setShowModal(false)} size='lg' animation={false}>
           <Modal.Header closeButton>
             <Modal.Title>Notification Details</Modal.Title>
           </Modal.Header>

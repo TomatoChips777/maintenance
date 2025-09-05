@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button, Modal, Container, Row, Col, Card, Form, InputGroup, Badge } from 'react-bootstrap';
+import { Button, Modal, Container, Row, Col, Card, Form, InputGroup, Badge, Alert } from 'react-bootstrap';
 import { useAuth } from '../../AuthContext';
 import TextTruncate from '../extra/TextTruncate';
 import FormatDate from '../extra/DateFormat';
@@ -127,11 +127,13 @@ function Notifications() {
           {loading ? (
             <p>Loading notifications...</p>
           ) : filteredNotifications.length === 0 ? (
-            <Card className="mb-3 shadow-sm text-center bg-light border-0">
-              <Card.Body>
-                <p className="mb-0 text-muted">No notifications found.</p>
-              </Card.Body>
-            </Card>
+                    <Alert variant="info">No notifications found.</Alert>
+            
+            // <Card className="mb-3 shadow-sm text-center bg-info border-0">
+            //   <Card.Body>
+            //     <p className="mb-0 text-muted">No notifications found.</p>
+            //   </Card.Body>
+            // </Card>
           ) : (
             filteredNotifications.map((notification, index) => (
               <Card
@@ -160,7 +162,7 @@ function Notifications() {
       </Row>
 
       {selectedNotification && (
-        <Modal show={showModal} onHide={() => setShowModal(false)} centered size='xl'>
+        <Modal show={showModal} onHide={() => setShowModal(false)} size='xl' animation={false}>
           <Modal.Header closeButton className="bg-light border-0">
             <Modal.Title>Notification Details</Modal.Title>
           </Modal.Header>

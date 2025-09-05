@@ -57,11 +57,11 @@ function Reports() {
         fetchReports();
         const socket = io(`${import.meta.env.VITE_API_URL}`);
         socket.on('updateReports', () => {
-            
-        fetchReports();
+
+            fetchReports();
         });
 
-        return () =>{
+        return () => {
             socket.disconnect();
         };
 
@@ -101,11 +101,11 @@ function Reports() {
         setCurrentPage(1);
     };
     return (
-        <Container fluid className='p-0'>
+        <Container fluid className='p-0 y-0' >
             <Card className='p-1'>
 
                 <h1 className='mb-4 text-center'>
-                    Reports List
+                    Reports Management
                 </h1>
                 <Row className="mb-3 p-3 align-items-end">
                     {/* Search */}
@@ -113,6 +113,7 @@ function Reports() {
                         <Form.Group controlId="searchReports">
                             <Form.Label>Search</Form.Label>
                             <Form.Control
+                                className='p-3 border-1'
                                 type="text"
                                 placeholder="Search Reports"
                                 value={search}
@@ -126,6 +127,7 @@ function Reports() {
                         <Form.Group controlId="filterStatus">
                             <Form.Label>Filter By Status</Form.Label>
                             <Form.Select
+                                className='p-3 border-1'
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
@@ -142,6 +144,7 @@ function Reports() {
                         <Form.Group controlId="filterPriority">
                             <Form.Label>Filter By Priority</Form.Label>
                             <Form.Select
+                                className='p-3 border-1'
                                 value={priorityFilter}
                                 onChange={(e) => setPriorityFilter(e.target.value)}
                             >
@@ -156,7 +159,7 @@ function Reports() {
 
                     {/* New Report Button */}
                     <Col md={2} className="d-flex justify-content-end">
-                        <Button variant="dark" onClick={handleOpenCreateModal}>
+                        <Button variant="dark" className='p-3' onClick={handleOpenCreateModal}>
                             <i className="bi bi-plus-circle me-2"></i>
                             New Report
                         </Button>
@@ -174,7 +177,7 @@ function Reports() {
                             <th>Description</th>
                             <th className='text-center'>Priority</th>
                             <th className='text-center'>Status</th>
-                            <th className='text-center'>Action</th>
+                            <th className='text-center'>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -198,7 +201,7 @@ function Reports() {
                                                 }`}
                                         >
                                             {report.status}
-                                        </span> 
+                                        </span>
                                     </td>
                                     <td className='text-center'>
                                         <Button variant='info' size='sm' className='me-2' onClick={() => handleOpenViewModal(report)}>
@@ -220,15 +223,17 @@ function Reports() {
                     </tbody>
 
                 </Table>
-
-                <PaginationControls
-                    filteredReports={filteredReports}
-                    pageSize={itemsPerPage}
-                    currentPage={currentPage}
-                    setCurrentPage={setCurrentPage}
-                    handlePageSizeChange={handlePageSizeChange}
-                />
-
+                <Card.Footer>
+                    <PaginationControls
+                        filteredReports={filteredReports}
+                        pageSize={itemsPerPage}
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        handlePageSizeChange={handlePageSizeChange}
+                    />
+                </Card.Footer>
+            </Card>
+            
                 <ViewReport
                     show={showViewModal}
                     handleClose={handleCloseViewModal}
@@ -245,8 +250,6 @@ function Reports() {
                     handleClose={handleCloseAlert}
                     report={reportToRemove}
                 />
-
-            </Card>
 
         </Container>
 

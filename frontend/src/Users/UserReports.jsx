@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Container, Spinner, Alert, Form, Image, Row, Col } from "react-bootstrap";
+import { Container, Spinner, Alert, Form, Image, Row, Col, Modal } from "react-bootstrap";
 import { useAuth } from "../../AuthContext";
 import axios from "axios";
 import FormatDate from "../extra/DateFormat";
@@ -14,36 +14,36 @@ function UserReports() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(4);
 
   const fetchReports = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_GET_REPORTS_BY_ID}/${user?.id}`
-        );
-        setReports(response.data.reports);
-      } catch (err) {
-        setError("Failed to load reports.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_GET_REPORTS_BY_ID}/${user?.id}`
+      );
+      setReports(response.data.reports);
+    } catch (err) {
+      setError("Failed to load reports.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   useEffect(() => {
     fetchReports();
-    const  socket = io(`${import.meta.env.VITE_API_URL}`);
-    socket.on('updateReports', () =>{
+    const socket = io(`${import.meta.env.VITE_API_URL}`);
+    socket.on('updateReports', () => {
       fetchReports();
     });
 
-    return () =>{
+    return () => {
       socket.disconnect();
     };
 
-  },[]);
+  }, []);
 
- 
+
 
   // Filter reports by search + status
   const filteredReports = useMemo(() => {
@@ -71,7 +71,7 @@ function UserReports() {
     setCurrentPage(1);
   };
 
-   if (loading) {
+  if (loading) {
     return (
       <div className="text-center mt-5">
         <Spinner animation="border" variant="success" />
@@ -109,11 +109,11 @@ function UserReports() {
         </Col>
         <Col md={3}>
           <Form.Select value={itemsPerPage} onChange={handlePageSizeChange}>
-            <option value={10}>10 per page</option>
+            <option value={4}>4 per page</option>
+            <option value={8}>8 per page</option>
+            <option value={12}>12 per page</option>
+            <option value={16}>16 per page</option>
             <option value={20}>20 per page</option>
-            <option value={30}>30 per page</option>
-            <option value={40}>40 per page</option>
-            <option value={50}>50 per page</option>
           </Form.Select>
         </Col>
       </Row>
@@ -122,21 +122,23 @@ function UserReports() {
       {currentData.length === 0 ? (
         <Alert variant="info">No reports found.</Alert>
       ) : (
+
         <ul className="list-group">
           {currentData.map(report => (
             <li
               key={report.id}
-              className="list-group-item p-4 mb-3 shadow-sm rounded-2 border-1 bg-light"
-              style={{ cursor: "pointer" }}
-              onClick={() =>
-                setExpandedReport(expandedReport === report.id ? null : report.id)
-              }
+              className="list-group-item p-4 mb-3 shadow-sm rounded-3 border-1 bg-white"
             >
-              {/* Compact Header */}
+              {/* Header */}
               <div className="d-flex justify-content-between align-items-center">
-                <span className="fw-semibold">{report.location}</span>
+                <div>
+                  <h5 className="mb-1 fw-bold">{report.location}</h5>
+                  <small className="text-muted">
+                    Reported on {FormatDate(report.created_at)}
+                  </small>
+                </div>
                 <span
-                  className={`badge rounded-0 ${report.status === "Pending"
+                  className={`badge px-3 py-2 fs-6 ${report.status === "Pending"
                       ? "bg-warning text-dark"
                       : report.status === "In Progress"
                         ? "bg-primary"
@@ -147,28 +149,55 @@ function UserReports() {
                 </span>
               </div>
 
-              {/* Expanded Details */}
-              {expandedReport === report.id && (
-                <div className="mt-3">
-                  {report.image_path && (
-                    <Image
-                      src={`${import.meta.env.VITE_IMAGES}/${report.image_path}`}
-                      alt="Report"
-                      fluid
-                      rounded
-                      className="mb-3"
-                      style={{ maxHeight: "200px", objectFit: "cover" }}
-                    />
-                  )}
-                  <p>{report.description}</p>
-                  <p className="text-muted small mb-1">
-                    Reported on {FormatDate(report.created_at)}
-                  </p>
-                </div>
-              )}
+              {/* Short Description */}
+              <p className="mt-2 text-truncate" style={{ maxWidth: "80%" }}>
+                {report.description}
+              </p>
+
+              {/* View More Button */}
+              <div className="text-end">
+                <button
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={() => setExpandedReport(report)}
+                >
+                  View Details
+                </button>
+              </div>
             </li>
           ))}
         </ul>
+      )}
+      {expandedReport && (
+        <Modal show onHide={() => setExpandedReport(null)} size="xl">
+          <Modal.Header closeButton>
+            <Modal.Title>Report Details</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {expandedReport.image_path && (
+              <Image
+                src={`${import.meta.env.VITE_IMAGES}/${expandedReport.image_path}`}
+                alt="Report"
+                fluid
+                rounded
+                className="mb-3 border"
+                style={{ maxHeight: "300px", objectFit: "cover" }}
+              />
+            )}
+            <h5>{expandedReport.location}</h5>
+            <p>{expandedReport.description}</p>
+            <p className="text-muted">
+              Reported on {FormatDate(expandedReport.created_at)}
+            </p>
+          </Modal.Body>
+          <Modal.Footer>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setExpandedReport(null)}
+            >
+              Close
+            </button>
+          </Modal.Footer>
+        </Modal>
       )}
 
       <PaginationControls
@@ -177,6 +206,7 @@ function UserReports() {
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         handlePageSizeChange={handlePageSizeChange}
+        showPageSizeSelect={false}
       />
     </Container>
   );

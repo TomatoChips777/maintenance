@@ -60,18 +60,18 @@ function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange,i
       }
     });
 
-    const dateOnly = new Date(newBorrow.returned_date);
-    dateOnly.setHours(17, 0, 0, 0); 
+    // const dateOnly = new Date(newBorrow.returned_date);
+    // dateOnly.setHours(17, 0, 0, 0); 
 
-    const phTime = new Date(
-      dateOnly.getTime() - (dateOnly.getTimezoneOffset() * 60000)
-    ).toISOString().slice(0, 19).replace('T', ' ');
+    // const phTime = new Date(
+    //   dateOnly.getTime() - (dateOnly.getTimezoneOffset() * 60000)
+    // ).toISOString().slice(0, 19).replace('T', ' ');
 
 
 
     const finalForm = {
       ...newBorrow,
-      returned_date: phTime, // store with time
+      // returned_date: phTime, // store with time
       item: allItems.join(', ')
     };
 
@@ -195,31 +195,6 @@ function AddBorrowerModal({ show, onHide, onSubmit, newBorrow, handleAddChange,i
                   onChange={handleAddChange}
                   rows={2}
                 />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Return Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="returned_date"
-                  value={newBorrow.returned_date}
-                  onChange={handleAddChange}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Status</Form.Label>
-                <Form.Select
-                  name="status"
-                  value={newBorrow.status}
-                  onChange={handleAddChange}
-                  required
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Returned">Returned</option>
-                </Form.Select>
               </Form.Group>
             </Card.Body>
           </Card>
